@@ -1,57 +1,155 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supabase Verbindungstest</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
-    #status { color: green; }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vereinskühlschrank</title>
+<style>
+  body { font-family: Arial; padding: 20px; }
+  label { display: block; margin-top: 10px; }
+  select, input { font-size: 16px; padding: 5px; margin: 5px 0; width: 100%; }
+  button { font-size: 16px; padding: 10px; margin-top: 10px; width: 100%; }
+  #status-bar { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 5px; color: #fff; font-weight: bold; }
+  #status-bar.online { background-color: green; }
+  #status-bar.offline { background-color: red; }
+  #output { margin-top: 10px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; }
+</style>
 </head>
 <body>
 
-<h2>Supabase Verbindungstest</h2>
-<p id="status">Verbindung wird geprüft...</p>
+<h2>Vereinskühlschrank</h2>
+
+<div id="status-bar" class="offline">Verbindung prüft…</div>
+
+<label for="mitglied">Mitglied:</label>
+<select id="mitglied"></select>
+
+<label for="produkt">Produkt:</label>
+<select id="produkt"></select>
+
+<label for="menge">Menge:</label>
+<input type="number" id="menge" value="1" min="1">
+
+<button id="eintragen">Eintragen</button>
+
 <pre id="output"></pre>
 
 <script>
-  const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM';
+const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM';
 
-  async function testConnection() {
-    const statusEl = document.getElementById('status');
-    const outputEl = document.getElementById('output');
-    statusEl.textContent = 'Verbindung wird geprüft...';
+const statusBar = document.getElementById('status-bar');
+const outputEl = document.getElementById('output');
+const mitgliedSelect = document.getElementById('mitglied');
+const produktSelect = document.getElementById('produkt');
+const eintragenButton = document.getElementById('eintragen');
 
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
+// Hilfsfunktion: Status anzeigen
+function updateStatus(online, text){
+  statusBar.className = online ? 'online' : 'offline';
+  statusBar.textContent = text;
+}
 
-      const data = await response.json();
-
-      if(response.ok){
-        statusEl.style.color = 'green';
-        statusEl.textContent = 'Supabase Verbindung erfolgreich ✅';
-        outputEl.textContent = JSON.stringify(data, null, 2);
-      } else {
-        throw new Error(JSON.stringify(data));
+// Prüft Internet + Supabase Verbindung
+async function checkConnection(){
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
       }
-
-    } catch(e) {
-      statusEl.style.color = 'red';
-      statusEl.textContent = 'Fehler ❌';
-      outputEl.textContent = e.message;
+    });
+    const data = await response.json();
+    if(response.ok){
+      updateStatus(true, 'Online ✅');
+      return true;
+    } else {
+      updateStatus(false, 'Supabase Fehler ❌');
+      outputEl.textContent = JSON.stringify(data,null,2);
+      return false;
     }
+  } catch(e) {
+    updateStatus(false, 'Offline ❌');
+    outputEl.textContent = e.message;
+    return false;
   }
+}
 
-  // Verbindungstest automatisch beim Laden ausführen
-  window.onload = testConnection;
+// Mitglieder + Produkte laden
+async function laden(){
+  const online = await checkConnection();
+  if(!online) return;
+
+  try {
+    const mitgliederResp = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const mitglieder = await mitgliederResp.json();
+    mitgliedSelect.innerHTML = '';
+    mitglieder.forEach(m=>{
+      const option = document.createElement('option');
+      option.value = m.id;
+      option.textContent = m.name;
+      mitgliedSelect.appendChild(option);
+    });
+
+    const produkteResp = await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const produkte = await produkteResp.json();
+    produktSelect.innerHTML = '';
+    produkte.forEach(p=>{
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.textContent = `${p.name} (€${p.preis})`;
+      option.dataset.preis = p.preis;
+      produktSelect.appendChild(option);
+    });
+
+    outputEl.textContent = 'Mitglieder + Produkte geladen ✅';
+
+  } catch(e){
+    updateStatus(false,'Fehler ❌');
+    outputEl.textContent = e.message;
+  }
+}
+
+// Eintrag speichern
+async function eintragen(){
+  const mitglied_id = mitgliedSelect.value;
+  const produkt_id = produktSelect.value;
+  const menge = parseInt(document.getElementById('menge').value);
+  const preis = parseFloat(produktSelect.selectedOptions[0].dataset.preis);
+  const gesamtpreis = preis * menge;
+
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify([{mitglied_id, produkt_id, menge, gesamtpreis, bezahlt:false}])
+    });
+    const data = await resp.json();
+    if(resp.ok){
+      outputEl.textContent = 'Eintrag gespeichert ✅\n'+JSON.stringify(data,null,2);
+    } else {
+      throw new Error(JSON.stringify(data));
+    }
+  } catch(e){
+    updateStatus(false,'Fehler ❌');
+    outputEl.textContent = e.message;
+  }
+}
+
+// Event
+eintragenButton.addEventListener('click', eintragen);
+
+// Automatisch laden
+window.onload = laden;
 </script>
 
 </body>
