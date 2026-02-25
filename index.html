@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Vereinskühlschrank</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vereinskühlschrank</title>
   <style>
     body { font-family: Arial; padding: 20px; }
     select, input, button { font-size: 16px; padding: 5px; margin: 5px; }
-    #status { margin-top: 10px; color: green; }
+    #status { margin-top: 10px; color: green; white-space: pre-wrap; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.8.0/dist/supabase.min.js"></script>
 </head>
 <body>
 
@@ -23,40 +24,53 @@
 <input type="number" id="menge" value="1" min="1"><br>
 
 <button onclick="eintragen()">Eintragen</button>
+<button onclick="testAPI()">Supabase Test</button>
 
-<p id="status"></p>
+<p id="status">Status / Testausgabe erscheint hier</p>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.8.0/dist/supabase.min.js"></script>
 <script>
   // Supabase Setup
-  const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co'; // <-- hier einfügen
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';     // <-- hier einfügen
+  const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';
+
   const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const status = document.getElementById('status');
 
   // Mitglieder + Produkte laden
   async function laden() {
-    const { data: mitglieder } = await supabase.from('mitglieder').select('id,name').eq('aktiv', true);
-    const { data: produkte } = await supabase.from('produkte').select('id,name,preis').eq('aktiv', true);
+    try {
+      const { data: mitglieder, error: errorM } = await supabase.from('mitglieder').select('id,name').eq('aktiv', true);
+      const { data: produkte, error: errorP } = await supabase.from('produkte').select('id,name,preis').eq('aktiv', true);
 
-    const mitgliedSelect = document.getElementById('mitglied');
-    mitglieder.forEach(m => {
-      const option = document.createElement('option');
-      option.value = m.id;
-      option.textContent = m.name;
-      mitgliedSelect.appendChild(option);
-    });
+      if(errorM) throw errorM;
+      if(errorP) throw errorP;
 
-    const produktSelect = document.getElementById('produkt');
-    produkte.forEach(p => {
-      const option = document.createElement('option');
-      option.value = p.id;
-      option.textContent = `${p.name} (€${p.preis})`;
-      option.dataset.preis = p.preis;
-      produktSelect.appendChild(option);
-    });
+      const mitgliedSelect = document.getElementById('mitglied');
+      mitglieder.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m.id;
+        option.textContent = m.name;
+        mitgliedSelect.appendChild(option);
+      });
+
+      const produktSelect = document.getElementById('produkt');
+      produkte.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.name} (€${p.preis})`;
+        option.dataset.preis = p.preis;
+        produktSelect.appendChild(option);
+      });
+
+      status.textContent = 'Mitglieder + Produkte geladen ✅';
+    } catch(e) {
+      status.style.color = 'red';
+      status.textContent = 'Fehler beim Laden: ' + e.message;
+    }
   }
 
-  // Eintragung in Supabase
+  // Entnahme speichern
   async function eintragen() {
     const mitglied_id = document.getElementById('mitglied').value;
     const produktSelect = document.getElementById('produkt');
@@ -65,25 +79,39 @@
     const preis = parseFloat(produktSelect.selectedOptions[0].dataset.preis);
     const gesamtpreis = preis * menge;
 
-    const { error } = await supabase.from('entnahmen').insert([{
-      mitglied_id,
-      produkt_id,
-      menge,
-      gesamtpreis,
-      bezahlt: false
-    }]);
-
-    const status = document.getElementById('status');
-    if(error) {
-      status.style.color = 'red';
-      status.textContent = 'Fehler: ' + error.message;
-    } else {
+    try {
+      const { error } = await supabase.from('entnahmen').insert([{
+        mitglied_id,
+        produkt_id,
+        menge,
+        gesamtpreis,
+        bezahlt: false
+      }]);
+      if(error) throw error;
       status.style.color = 'green';
       status.textContent = 'Eintrag gespeichert ✅';
+    } catch(e) {
+      status.style.color = 'red';
+      status.textContent = 'Fehler: ' + e.message;
     }
   }
 
+  // Supabase Testbutton
+  async function testAPI() {
+    try {
+      const { data, error } = await supabase.from('mitglieder').select('*');
+      if(error) throw error;
+      status.style.color = 'blue';
+      status.textContent = 'Supabase Test erfolgreich:\n' + JSON.stringify(data, null, 2);
+    } catch(e) {
+      status.style.color = 'red';
+      status.textContent = 'Test fehlgeschlagen: ' + e.message;
+    }
+  }
+
+  // Seite laden
   laden();
 </script>
+
 </body>
 </html>
