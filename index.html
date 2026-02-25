@@ -7,25 +7,27 @@
 </head>
 <body>
   <h2>Supabase API Test</h2>
-  <button onclick="ladeMitglieder()">Mitglieder laden</button>
-  <pre id="ausgabe"></pre>
+  <button id="testbutton">Mitglieder laden</button>
+  <pre id="status">Status erscheint hier</pre>
 
 <script>
-  // Supabase Setup
-  const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';
+const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';
 
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  async function ladeMitglieder() {
-    const { data, error } = await supabase.from('mitglieder').select('*').eq('aktiv', true);
-    const ausgabe = document.getElementById('ausgabe');
-    if(error) {
-      ausgabe.textContent = 'Fehler: ' + error.message;
-    } else {
-      ausgabe.textContent = JSON.stringify(data, null, 2);
-    }
+const status = document.getElementById('status');
+const button = document.getElementById('testbutton');
+
+button.addEventListener('click', async () => {
+  try {
+    const { data, error } = await supabase.from('mitglieder').select('*');
+    if(error) throw error;
+    status.textContent = 'Supabase Test erfolgreich:\n' + JSON.stringify(data, null, 2);
+  } catch(e) {
+    status.textContent = 'Fehler: ' + e.message;
   }
+});
 </script>
 </body>
 </html>
