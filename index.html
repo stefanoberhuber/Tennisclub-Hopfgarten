@@ -2,9 +2,88 @@
 <html>
 <head>
   <title>Vereinskühlschrank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    select, input, button { font-size: 16px; padding: 5px; margin: 5px; }
+    #status { margin-top: 10px; color: green; }
+  </style>
 </head>
 <body>
-  <h1>Vereinskühlschrank läuft 🚀</h1>
-  <p>Login folgt später</p>
+
+<h2>Vereinskühlschrank</h2>
+
+<label for="mitglied">Mitglied:</label>
+<select id="mitglied"></select><br>
+
+<label for="produkt">Produkt:</label>
+<select id="produkt"></select><br>
+
+<label for="menge">Menge:</label>
+<input type="number" id="menge" value="1" min="1"><br>
+
+<button onclick="eintragen()">Eintragen</button>
+
+<p id="status"></p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.8.0/dist/supabase.min.js"></script>
+<script>
+  // Supabase Setup
+  const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co'; // <-- hier einfügen
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';     // <-- hier einfügen
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Mitglieder + Produkte laden
+  async function laden() {
+    const { data: mitglieder } = await supabase.from('mitglieder').select('id,name').eq('aktiv', true);
+    const { data: produkte } = await supabase.from('produkte').select('id,name,preis').eq('aktiv', true);
+
+    const mitgliedSelect = document.getElementById('mitglied');
+    mitglieder.forEach(m => {
+      const option = document.createElement('option');
+      option.value = m.id;
+      option.textContent = m.name;
+      mitgliedSelect.appendChild(option);
+    });
+
+    const produktSelect = document.getElementById('produkt');
+    produkte.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.textContent = `${p.name} (€${p.preis})`;
+      option.dataset.preis = p.preis;
+      produktSelect.appendChild(option);
+    });
+  }
+
+  // Eintragung in Supabase
+  async function eintragen() {
+    const mitglied_id = document.getElementById('mitglied').value;
+    const produktSelect = document.getElementById('produkt');
+    const produkt_id = produktSelect.value;
+    const menge = parseInt(document.getElementById('menge').value);
+    const preis = parseFloat(produktSelect.selectedOptions[0].dataset.preis);
+    const gesamtpreis = preis * menge;
+
+    const { error } = await supabase.from('entnahmen').insert([{
+      mitglied_id,
+      produkt_id,
+      menge,
+      gesamtpreis,
+      bezahlt: false
+    }]);
+
+    const status = document.getElementById('status');
+    if(error) {
+      status.style.color = 'red';
+      status.textContent = 'Fehler: ' + error.message;
+    } else {
+      status.style.color = 'green';
+      status.textContent = 'Eintrag gespeichert ✅';
+    }
+  }
+
+  laden();
+</script>
 </body>
 </html>
