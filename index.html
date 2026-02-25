@@ -2,36 +2,48 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supabase Test iOS</title>
+  <title>Supabase Verbindungstest</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+    #status { color: green; }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/supabase.min.js"></script>
 </head>
 <body>
-  <h2>Supabase API Test</h2>
-  <button id="testbutton">Mitglieder laden</button>
-  <pre id="status">Status erscheint hier</pre>
+
+<h2>Supabase Verbindungstest</h2>
+<p id="status">Verbindung wird geprüft...</p>
+<pre id="output"></pre>
 
 <script>
-  // Supabase Setup
   const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cmJjcGhkaXRmcmd2Zm9zd3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODEyMDksImV4cCI6MjA4NzU1NzIwOX0.27OVrQxeSzu-qni8NbhgawmX9jdpZDoAoxyFAA2V6R0';
 
   const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const status = document.getElementById('status');
-  const button = document.getElementById('testbutton');
+  const statusEl = document.getElementById('status');
+  const outputEl = document.getElementById('output');
 
-  button.addEventListener('click', async function() {
-    status.textContent = 'Lade...';
+  async function testConnection() {
     try {
-      const { data, error } = await supabase
-        .from('mitglieder')
-        .select('*');
+      const { data, error } = await supabase.from('mitglieder').select('*');
       if(error) throw error;
-      status.textContent = 'Supabase Test erfolgreich:\n' + JSON.stringify(data, null, 2);
+
+      statusEl.style.color = 'green';
+      statusEl.textContent = 'Supabase Verbindung erfolgreich ✅';
+      outputEl.textContent = JSON.stringify(data, null, 2);
+
     } catch(e) {
-      status.textContent = 'Fehler: ' + e.message;
+      statusEl.style.color = 'red';
+      statusEl.textContent = 'Verbindungsfehler ❌';
+      outputEl.textContent = e.message;
     }
-  });
+  }
+
+  // Verbindungstest automatisch beim Laden
+  testConnection();
 </script>
+
 </body>
 </html>
