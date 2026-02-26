@@ -35,9 +35,9 @@ h1{text-align:center; font-size:26px;}
   background:white;
   border-radius:6px;
   padding:5px;
-  height:300px; /* passt auf Tablet ohne Scrollen */
+  height:300px;
   overflow-y:auto;
-  width:100%; /* volle Spaltenbreite */
+  width:100%;
   box-sizing:border-box;
 }
 
@@ -63,13 +63,6 @@ h1{text-align:center; font-size:26px;}
 .member-item:hover{background:#e8f0ff;}
 .selected-member{background:#cce0ff;}
 
-.product-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
-  gap:6px;
-  margin-top:15px;
-}
-
 .product-btn{
   padding:12px;
   font-size:16px;
@@ -77,6 +70,7 @@ h1{text-align:center; font-size:26px;}
   border:none;
   background:#007bff;
   color:white;
+  margin:3px;
 }
 
 .selected-product{background:#28a745!important;}
@@ -107,12 +101,44 @@ h1{text-align:center; font-size:26px;}
 .save-btn{
   padding:14px;
   font-size:18px;
-  width:100%;
-  margin-top:10px;
+  width:48%;
+  margin:5px 1%;
   background:#28a745;
   color:white;
   border:none;
   border-radius:6px;
+}
+
+.close-btn{
+  padding:14px;
+  font-size:18px;
+  width:48%;
+  margin:5px 1%;
+  background:#dc3545;
+  color:white;
+  border:none;
+  border-radius:6px;
+}
+
+/* Overlay Modal */
+#modalOverlay{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
+#modal{
+  background:white;
+  padding:20px;
+  border-radius:8px;
+  max-width:500px;
+  width:90%;
+  text-align:center;
 }
 </style>
 </head>
@@ -144,18 +170,23 @@ h1{text-align:center; font-size:26px;}
 
 </div>
 
-<h2>Produkte</h2>
-<div id="productGrid" class="product-grid"></div>
-
-<div class="quantity-box">
-  <button onclick="changeQuantity(-1)">−</button>
-  <span id="quantity">1</span>
-  <button onclick="changeQuantity(1)">+</button>
+<!-- Modal für Produkt + Menge -->
+<div id="modalOverlay">
+  <div id="modal">
+    <h2 id="modalMemberName">Mitglied</h2>
+    <div id="productGrid"></div>
+    <div class="quantity-box">
+      <button onclick="changeQuantity(-1)">−</button>
+      <span id="quantity">1</span>
+      <button onclick="changeQuantity(1)">+</button>
+    </div>
+    <div class="total" id="totalPrice">Gesamt: 0 €</div>
+    <div>
+      <button class="save-btn" onclick="saveEntry()">Speichern</button>
+      <button class="close-btn" onclick="closeModal()">Schließen</button>
+    </div>
+  </div>
 </div>
-
-<div class="total" id="totalPrice">Gesamt: 0 €</div>
-
-<button class="save-btn" onclick="saveEntry()">Entnahme speichern</button>
 
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
@@ -183,7 +214,7 @@ function renderMembers(list){
     div.className="member-item";
     div.textContent=m.name;
     div.dataset.id=m.id;
-    div.onclick=()=>selectMember(m.id);
+    div.onclick=()=>openModal(m.id);
     container.appendChild(div);
   });
 }
@@ -198,7 +229,7 @@ function renderRecentMembers(){
     div.className="member-item";
     div.textContent=m.name;
     div.dataset.id=m.id;
-    div.onclick=()=>selectMember(m.id);
+    div.onclick=()=>openModal(m.id);
     container.appendChild(div);
   });
 }
@@ -212,25 +243,27 @@ function updateRecentMembers(member){
   renderRecentMembers();
 }
 
-// ---------- Mitglied auswählen ----------
-function selectMember(id){
-  selectedMember=members.find(m=>m.id==id);
-  document.querySelectorAll(".member-item").forEach(el=>el.classList.remove("selected-member"));
-  document.querySelectorAll(`[data-id='${id}']`).forEach(el=>el.classList.add("selected-member"));
-  updateRecentMembers(selectedMember);
+// ---------- Modal öffnen ----------
+function openModal(id){
+  selectedMember = members.find(m=>m.id==id);
+  document.getElementById("modalMemberName").textContent = selectedMember.name;
+  document.getElementById("modalOverlay").style.display = "flex";
+  quantity=1;
+  document.getElementById("quantity").textContent = 1;
+  renderProducts();
+  updateTotal();
 }
 
-// ---------- Suche ----------
-document.getElementById("search").addEventListener("input",e=>{
-  const value=e.target.value.toLowerCase();
-  renderMembers(members.filter(m=>m.name.toLowerCase().includes(value)));
-});
+// Modal schließen
+function closeModal(){
+  document.getElementById("modalOverlay").style.display="none";
+  selectedProduct=null;
+}
 
 // ---------- Produkte laden ----------
 async function loadProducts(){
   const res=await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*&apikey=${SUPABASE_KEY}`);
   products=await res.json();
-  renderProducts();
 }
 function renderProducts(){
   const grid=document.getElementById("productGrid");
@@ -253,19 +286,22 @@ function selectProduct(p,btn){
 // ---------- Menge und Preis ----------
 function changeQuantity(delta){
   quantity+=delta;
-  if(quantity<1)quantity=1;
-  document.getElementById("quantity").textContent=quantity;
+  if(quantity<1) quantity=1;
+  document.getElementById("quantity").textContent = quantity;
   updateTotal();
 }
 function updateTotal(){
-  if(!selectedProduct)return;
+  if(!selectedProduct) {
+    document.getElementById("totalPrice").textContent = "Gesamt: 0 €";
+    return;
+  }
   const total=(selectedProduct.preis*quantity).toFixed(2);
   document.getElementById("totalPrice").textContent="Gesamt: "+total+" €";
 }
 
 // ---------- Entnahme speichern ----------
 async function saveEntry(){
-  if(!selectedMember||!selectedProduct)return;
+  if(!selectedMember||!selectedProduct) return;
   const total=selectedProduct.preis*quantity;
   await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
     method:"POST",
@@ -275,19 +311,17 @@ async function saveEntry(){
       "Content-Type": "application/json",
       "Prefer": "return=representation"
     },
-    body:JSON.stringify([{
+    body: JSON.stringify([{
       mitglied_id:selectedMember.id,
       produkt_id:selectedProduct.id,
-      menge:quantity,
-      gesamtpreis:total,
+      menge: quantity,
+      gesamtpreis: total,
       bezahlt:false
     }])
   });
-  quantity=1;
-  document.getElementById("quantity").textContent=1;
-  document.getElementById("totalPrice").textContent="Gesamt: 0 €";
-  document.querySelectorAll(".product-btn").forEach(b=>b.classList.remove("selected-product"));
-  selectedProduct=null;
+  // localStorage aktualisieren
+  updateRecentMembers(selectedMember);
+  closeModal();
 }
 
 // ---------- Initialisierung ----------
