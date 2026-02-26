@@ -1,155 +1,223 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
 <title>Vereinskühlschrank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-  body { font-family: Arial; padding: 20px; }
-  label { display: block; margin-top: 10px; }
-  select, input { font-size: 16px; padding: 5px; margin: 5px 0; width: 100%; }
-  button { font-size: 16px; padding: 10px; margin-top: 10px; width: 100%; }
-  #status-bar { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 5px; color: #fff; font-weight: bold; }
-  #status-bar.online { background-color: green; }
-  #status-bar.offline { background-color: red; }
-  #output { margin-top: 10px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; }
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f4f6f9;
+}
+
+h1 {
+  text-align: center;
+}
+
+#status {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  font-weight: bold;
+}
+
+.online { color: green; }
+.offline { color: red; }
+
+.search-box {
+  width: 100%;
+  padding: 15px;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.member-list {
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.member-item {
+  padding: 12px;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.member-item:hover {
+  background: #e8f0ff;
+}
+
+.selected {
+  background: #cce0ff;
+}
+
+.section-title {
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+button {
+  padding: 15px;
+  font-size: 18px;
+  width: 100%;
+  margin-top: 15px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
 </style>
 </head>
+
 <body>
 
-<h2>Vereinskühlschrank</h2>
+<div id="status" class="offline">● Offline</div>
 
-<div id="status-bar" class="offline">Verbindung prüft…</div>
+<h1>Vereinskühlschrank</h1>
 
-<label for="mitglied">Mitglied:</label>
-<select id="mitglied"></select>
+<input type="text" id="search" class="search-box" placeholder="Mitglied suchen...">
 
-<label for="produkt">Produkt:</label>
-<select id="produkt"></select>
+<div class="section-title">Zuletzt verwendet</div>
+<div id="recentMembers" class="member-list"></div>
 
-<label for="menge">Menge:</label>
-<input type="number" id="menge" value="1" min="1">
+<div class="section-title">Alle Mitglieder</div>
+<div id="memberList" class="member-list"></div>
 
-<button id="eintragen">Eintragen</button>
-
-<pre id="output"></pre>
+<button onclick="saveTestEntry()">Test-Entnahme speichern</button>
 
 <script>
-const SUPABASE_URL = 'https://lzrbcphditfrgvfoswpr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM';
+const SUPABASE_URL = "https://lzrbcphditfrgvfoswpr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
-const statusBar = document.getElementById('status-bar');
-const outputEl = document.getElementById('output');
-const mitgliedSelect = document.getElementById('mitglied');
-const produktSelect = document.getElementById('produkt');
-const eintragenButton = document.getElementById('eintragen');
+let members = [];
+let selectedMember = null;
 
-// Hilfsfunktion: Status anzeigen
-function updateStatus(online, text){
-  statusBar.className = online ? 'online' : 'offline';
-  statusBar.textContent = text;
-}
-
-// Prüft Internet + Supabase Verbindung
-async function checkConnection(){
+// Status prüfen
+async function checkConnection() {
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=id&limit=1`, {
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
       }
     });
-    const data = await response.json();
-    if(response.ok){
-      updateStatus(true, 'Online ✅');
-      return true;
+
+    if (res.ok) {
+      document.getElementById("status").textContent = "● Online";
+      document.getElementById("status").className = "online";
     } else {
-      updateStatus(false, 'Supabase Fehler ❌');
-      outputEl.textContent = JSON.stringify(data,null,2);
-      return false;
+      throw new Error();
     }
-  } catch(e) {
-    updateStatus(false, 'Offline ❌');
-    outputEl.textContent = e.message;
-    return false;
+  } catch {
+    document.getElementById("status").textContent = "● Offline";
+    document.getElementById("status").className = "offline";
   }
 }
 
-// Mitglieder + Produkte laden
-async function laden(){
-  const online = await checkConnection();
-  if(!online) return;
-
-  try {
-    const mitgliederResp = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
-    const mitglieder = await mitgliederResp.json();
-    mitgliedSelect.innerHTML = '';
-    mitglieder.forEach(m=>{
-      const option = document.createElement('option');
-      option.value = m.id;
-      option.textContent = m.name;
-      mitgliedSelect.appendChild(option);
-    });
-
-    const produkteResp = await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
-    const produkte = await produkteResp.json();
-    produktSelect.innerHTML = '';
-    produkte.forEach(p=>{
-      const option = document.createElement('option');
-      option.value = p.id;
-      option.textContent = `${p.name} (€${p.preis})`;
-      option.dataset.preis = p.preis;
-      produktSelect.appendChild(option);
-    });
-
-    outputEl.textContent = 'Mitglieder + Produkte geladen ✅';
-
-  } catch(e){
-    updateStatus(false,'Fehler ❌');
-    outputEl.textContent = e.message;
-  }
-}
-
-// Eintrag speichern
-async function eintragen(){
-  const mitglied_id = mitgliedSelect.value;
-  const produkt_id = produktSelect.value;
-  const menge = parseInt(document.getElementById('menge').value);
-  const preis = parseFloat(produktSelect.selectedOptions[0].dataset.preis);
-  const gesamtpreis = preis * menge;
-
-  try {
-    const resp = await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify([{mitglied_id, produkt_id, menge, gesamtpreis, bezahlt:false}])
-    });
-    const data = await resp.json();
-    if(resp.ok){
-      outputEl.textContent = 'Eintrag gespeichert ✅\n'+JSON.stringify(data,null,2);
-    } else {
-      throw new Error(JSON.stringify(data));
+// Mitglieder laden
+async function loadMembers() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
     }
-  } catch(e){
-    updateStatus(false,'Fehler ❌');
-    outputEl.textContent = e.message;
-  }
+  });
+
+  members = await res.json();
+  renderMembers(members);
+  renderRecentMembers();
 }
 
-// Event
-eintragenButton.addEventListener('click', eintragen);
+// Render Mitgliederliste
+function renderMembers(list) {
+  const container = document.getElementById("memberList");
+  container.innerHTML = "";
 
-// Automatisch laden
-window.onload = laden;
+  list.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "member-item";
+    div.textContent = m.name;
+    div.onclick = () => selectMember(m);
+    container.appendChild(div);
+  });
+}
+
+// Live Suche
+document.getElementById("search").addEventListener("input", e => {
+  const value = e.target.value.toLowerCase();
+  const filtered = members.filter(m => m.name.toLowerCase().includes(value));
+  renderMembers(filtered);
+});
+
+// Mitglied auswählen
+function selectMember(member) {
+  selectedMember = member;
+  saveRecent(member);
+  alert("Ausgewählt: " + member.name);
+}
+
+// Zuletzt verwendete speichern
+function saveRecent(member) {
+  let recent = JSON.parse(localStorage.getItem("recentMembers")) || [];
+  recent = recent.filter(m => m.id !== member.id);
+  recent.unshift(member);
+  recent = recent.slice(0, 10);
+  localStorage.setItem("recentMembers", JSON.stringify(recent));
+  renderRecentMembers();
+}
+
+// Zuletzt anzeigen
+function renderRecentMembers() {
+  const container = document.getElementById("recentMembers");
+  container.innerHTML = "";
+
+  let recent = JSON.parse(localStorage.getItem("recentMembers")) || [];
+
+  recent.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "member-item";
+    div.textContent = m.name;
+    div.onclick = () => selectMember(m);
+    container.appendChild(div);
+  });
+}
+
+// Test Eintrag
+async function saveTestEntry() {
+  if (!selectedMember) {
+    alert("Bitte zuerst Mitglied wählen");
+    return;
+  }
+
+  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify([{
+      mitglied_id: selectedMember.id,
+      produkt_id: 1,
+      menge: 1,
+      gesamtpreis: 1,
+      bezahlt: false
+    }])
+  });
+
+  alert("Test-Entnahme gespeichert");
+}
+
+// Init
+checkConnection();
+loadMembers();
+document.getElementById("search").focus();
 </script>
 
 </body>
