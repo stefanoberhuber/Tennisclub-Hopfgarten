@@ -21,7 +21,7 @@ h1{text-align:center; font-size:26px;}
 
 .layout{
   display:grid;
-  grid-template-columns:1fr 1fr; 
+  grid-template-columns:1fr 1fr;
   gap:10px;
 }
 
@@ -63,14 +63,23 @@ h1{text-align:center; font-size:26px;}
 .member-item:hover{background:#e8f0ff;}
 .selected-member{background:#cce0ff;}
 
+#productGrid{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:10px;
+}
+
 .product-btn{
-  padding:10px;
+  flex: 1 1 45%; /* zwei Buttons pro Reihe */
+  margin:5px;
+  padding:12px;
   font-size:16px;
   border-radius:6px;
   border:none;
   background:#007bff;
   color:white;
-  margin:3px;
+  cursor:pointer;
 }
 
 .selected-product{background:#28a745!important;}
@@ -84,7 +93,7 @@ h1{text-align:center; font-size:26px;}
 
 .quantity-box button{
   font-size:20px;
-  padding:6px 12px;
+  padding:10px 15px;
 }
 
 .quantity-box span{
@@ -110,7 +119,7 @@ h1{text-align:center; font-size:26px;}
 .save-btn{background:#28a745; color:white;}
 .close-btn{background:#dc3545; color:white;}
 
-/* Modal Fenster */
+/* Modal Fenster responsive */
 #modalOverlay{
   display:none;
   position:fixed;
@@ -126,8 +135,10 @@ h1{text-align:center; font-size:26px;}
   background:white;
   padding:20px;
   border-radius:10px;
-  width:400px;
-  max-width:90%;
+  width:90%;
+  max-width:400px;
+  max-height:80vh;
+  overflow-y:auto;
   text-align:center;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
@@ -182,7 +193,6 @@ let members=[], products=[];
 let selectedMember=null, selectedProduct=null;
 let quantity=1;
 
-// Statusanzeige
 document.getElementById("status").textContent="● Online";
 document.getElementById("status").className="online";
 
