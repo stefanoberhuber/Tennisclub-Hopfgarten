@@ -6,109 +6,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background: #f4f6f9;
+body { font-family: Arial; margin:20px; background:#f4f6f9;}
+h1{text-align:center;}
+
+#status{
+  position:fixed;
+  top:15px;
+  right:20px;
+  font-weight:bold;
+}
+.online{color:green;}
+.offline{color:red;}
+
+.layout{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
 }
 
-h1 {
-  text-align: center;
+.search-box{
+  width:100%;
+  padding:15px;
+  font-size:20px;
+  margin-bottom:10px;
 }
 
-#status {
-  position: fixed;
-  top: 15px;
-  right: 20px;
-  font-weight: bold;
+.member-list{
+  max-height:300px;
+  overflow-y:auto;
+  background:white;
+  border-radius:8px;
+  padding:10px;
 }
 
-.online { color: green; }
-.offline { color: red; }
-
-.search-box {
-  width: 100%;
-  padding: 15px;
-  font-size: 20px;
-  margin-bottom: 15px;
+.member-item{
+  padding:12px;
+  font-size:18px;
+  border-bottom:1px solid #eee;
+  cursor:pointer;
 }
 
-.member-list {
-  max-height: 200px;
-  overflow-y: auto;
-  background: white;
-  border-radius: 8px;
-  padding: 10px;
+.member-item:hover{background:#e8f0ff;}
+.selected-member{background:#cce0ff;}
+
+.section-title{
+  font-weight:bold;
+  margin-bottom:8px;
 }
 
-.member-item {
-  padding: 12px;
-  font-size: 18px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:10px;
+  margin-top:20px;
 }
 
-.member-item:hover {
-  background: #e8f0ff;
+.product-btn{
+  padding:20px;
+  font-size:18px;
+  border-radius:8px;
+  border:none;
+  background:#007bff;
+  color:white;
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  margin-top: 20px;
+.selected-product{background:#28a745!important;}
+
+.quantity-box{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-top:15px;
 }
 
-.product-btn {
-  padding: 20px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: none;
-  background: #007bff;
-  color: white;
-  cursor: pointer;
+.quantity-box button{
+  font-size:24px;
+  padding:10px 20px;
 }
 
-.product-btn:hover {
-  background: #0056b3;
+.quantity-box span{
+  font-size:24px;
+  margin:0 20px;
 }
 
-.selected-product {
-  background: #28a745 !important;
+.total{
+  text-align:center;
+  font-size:22px;
+  margin-top:10px;
 }
 
-.quantity-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-}
-
-.quantity-box button {
-  font-size: 24px;
-  padding: 10px 20px;
-}
-
-.quantity-box span {
-  font-size: 24px;
-  margin: 0 20px;
-}
-
-.total {
-  text-align: center;
-  font-size: 22px;
-  margin-top: 15px;
-}
-
-.save-btn {
-  padding: 18px;
-  font-size: 20px;
-  width: 100%;
-  margin-top: 20px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 8px;
+.save-btn{
+  padding:18px;
+  font-size:20px;
+  width:100%;
+  margin-top:15px;
+  background:#28a745;
+  color:white;
+  border:none;
+  border-radius:8px;
 }
 </style>
 </head>
@@ -119,9 +114,22 @@ h1 {
 
 <h1>Vereinskühlschrank</h1>
 
-<input type="text" id="search" class="search-box" placeholder="Mitglied suchen...">
+<div class="layout">
 
-<div id="memberList" class="member-list"></div>
+  <!-- LINKER BEREICH -->
+  <div>
+    <div class="section-title">Mitglied auswählen</div>
+    <input type="text" id="search" class="search-box" placeholder="Mitglied suchen...">
+    <div id="memberList" class="member-list"></div>
+  </div>
+
+  <!-- RECHTER BEREICH -->
+  <div>
+    <div class="section-title">Zuletzt aktiv</div>
+    <div id="recentMembers" class="member-list"></div>
+  </div>
+
+</div>
 
 <h2>Produkte</h2>
 <div id="productGrid" class="product-grid"></div>
@@ -137,150 +145,177 @@ h1 {
 <button class="save-btn" onclick="saveEntry()">Entnahme speichern</button>
 
 <script>
-const SUPABASE_URL = "https://lzrbcphditfrgvfoswpr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
+const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
+const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
-let members = [];
-let products = [];
-let selectedMember = null;
-let selectedProduct = null;
-let quantity = 1;
+let members=[],products=[];
+let selectedMember=null,selectedProduct=null;
+let quantity=1;
 
-async function checkConnection() {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=id&limit=1`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      }
+async function checkConnection(){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=id&limit=1`,{
+      headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}
     });
-
-    if (res.ok) {
-      document.getElementById("status").textContent = "● Online";
-      document.getElementById("status").className = "online";
-    } else {
-      throw new Error();
-    }
-  } catch {
-    document.getElementById("status").textContent = "● Offline";
-    document.getElementById("status").className = "offline";
+    if(res.ok){
+      status.textContent="● Online";
+      status.className="online";
+    } else throw new Error();
+  }catch{
+    status.textContent="● Offline";
+    status.className="offline";
   }
 }
 
-async function loadMembers() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`, {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
+async function loadMembers(){
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*`,{
+    headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}
   });
-  members = await res.json();
+  members=await res.json();
   renderMembers(members);
 }
 
-async function loadProducts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*`, {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+async function loadRecentMembers(){
+  const res=await fetch(
+    `${SUPABASE_URL}/rest/v1/entnahmen?select=mitglied_id,mitglieder(name)&order=created_at.desc&limit=30`,
+    {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}
+  );
+
+  const data=await res.json();
+  const unique=[];
+  const seen=new Set();
+
+  for(const entry of data){
+    if(entry.mitglieder && !seen.has(entry.mitglied_id)){
+      seen.add(entry.mitglied_id);
+      unique.push({
+        id:entry.mitglied_id,
+        name:entry.mitglieder.name
+      });
     }
-  });
-  products = await res.json();
-  renderProducts();
+    if(unique.length>=10) break;
+  }
+
+  renderRecentMembers(unique);
 }
 
-function renderMembers(list) {
-  const container = document.getElementById("memberList");
-  container.innerHTML = "";
-
-  list.forEach(m => {
-    const div = document.createElement("div");
-    div.className = "member-item";
-    div.textContent = m.name;
-    div.onclick = () => {
-      selectedMember = m;
-      alert("Mitglied: " + m.name);
-    };
+function renderRecentMembers(list){
+  const container=document.getElementById("recentMembers");
+  container.innerHTML="";
+  list.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member-item";
+    div.textContent=m.name;
+    div.onclick=()=>selectMember(m.id);
     container.appendChild(div);
   });
 }
 
-document.getElementById("search").addEventListener("input", e => {
-  const value = e.target.value.toLowerCase();
-  const filtered = members.filter(m => m.name.toLowerCase().includes(value));
-  renderMembers(filtered);
+function renderMembers(list){
+  const container=document.getElementById("memberList");
+  container.innerHTML="";
+  list.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member-item";
+    div.textContent=m.name;
+    div.onclick=()=>selectMember(m.id);
+    div.dataset.id=m.id;
+    container.appendChild(div);
+  });
+}
+
+function selectMember(id){
+  selectedMember=members.find(m=>m.id==id);
+
+  document.querySelectorAll(".member-item")
+    .forEach(el=>el.classList.remove("selected-member"));
+
+  document.querySelectorAll(`[data-id='${id}']`)
+    .forEach(el=>el.classList.add("selected-member"));
+}
+
+document.getElementById("search").addEventListener("input",e=>{
+  const value=e.target.value.toLowerCase();
+  renderMembers(members.filter(m=>m.name.toLowerCase().includes(value)));
 });
 
-function renderProducts() {
-  const grid = document.getElementById("productGrid");
-  grid.innerHTML = "";
+async function loadProducts(){
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*`,{
+    headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}
+  });
+  products=await res.json();
+  renderProducts();
+}
 
-  products.forEach(p => {
-    const btn = document.createElement("button");
-    btn.className = "product-btn";
-    btn.textContent = p.name + " (" + p.preis + "€)";
-    btn.onclick = () => selectProduct(p, btn);
+function renderProducts(){
+  const grid=document.getElementById("productGrid");
+  grid.innerHTML="";
+  products.forEach(p=>{
+    const btn=document.createElement("button");
+    btn.className="product-btn";
+    btn.textContent=p.name+" ("+p.preis+"€)";
+    btn.onclick=()=>selectProduct(p,btn);
     grid.appendChild(btn);
   });
 }
 
-function selectProduct(product, button) {
-  selectedProduct = product;
-  document.querySelectorAll(".product-btn").forEach(b => b.classList.remove("selected-product"));
-  button.classList.add("selected-product");
+function selectProduct(p,btn){
+  selectedProduct=p;
+  document.querySelectorAll(".product-btn")
+    .forEach(b=>b.classList.remove("selected-product"));
+  btn.classList.add("selected-product");
   updateTotal();
 }
 
-function changeQuantity(delta) {
-  quantity += delta;
-  if (quantity < 1) quantity = 1;
-  document.getElementById("quantity").textContent = quantity;
+function changeQuantity(delta){
+  quantity+=delta;
+  if(quantity<1)quantity=1;
+  document.getElementById("quantity").textContent=quantity;
   updateTotal();
 }
 
-function updateTotal() {
-  if (!selectedProduct) return;
-  const total = (selectedProduct.preis * quantity).toFixed(2);
-  document.getElementById("totalPrice").textContent = "Gesamt: " + total + " €";
+function updateTotal(){
+  if(!selectedProduct)return;
+  const total=(selectedProduct.preis*quantity).toFixed(2);
+  document.getElementById("totalPrice").textContent="Gesamt: "+total+" €";
 }
 
-async function saveEntry() {
-  if (!selectedMember || !selectedProduct) {
-    alert("Bitte Mitglied und Produkt auswählen");
-    return;
-  }
+async function saveEntry(){
+  if(!selectedMember||!selectedProduct)return;
 
-  const total = selectedProduct.preis * quantity;
+  const total=selectedProduct.preis*quantity;
 
-  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`, {
-    method: "POST",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
+  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
+    method:"POST",
+    headers:{
+      apikey:SUPABASE_KEY,
+      Authorization:`Bearer ${SUPABASE_KEY}`,
+      "Content-Type":"application/json",
+      Prefer:"return=representation"
     },
-    body: JSON.stringify([{
-      mitglied_id: selectedMember.id,
-      produkt_id: selectedProduct.id,
-      menge: quantity,
-      gesamtpreis: total,
-      bezahlt: false
+    body:JSON.stringify([{
+      mitglied_id:selectedMember.id,
+      produkt_id:selectedProduct.id,
+      menge:quantity,
+      gesamtpreis:total,
+      bezahlt:false
     }])
   });
 
-  alert("Gespeichert ✅");
+  quantity=1;
+  document.getElementById("quantity").textContent=1;
+  document.getElementById("totalPrice").textContent="Gesamt: 0 €";
+  document.querySelectorAll(".product-btn")
+    .forEach(b=>b.classList.remove("selected-product"));
+  selectedProduct=null;
 
-  quantity = 1;
-  document.getElementById("quantity").textContent = 1;
-  document.getElementById("totalPrice").textContent = "Gesamt: 0 €";
-  document.querySelectorAll(".product-btn").forEach(b => b.classList.remove("selected-product"));
-  selectedProduct = null;
+  loadRecentMembers();
 }
 
 checkConnection();
 loadMembers();
 loadProducts();
+loadRecentMembers();
 document.getElementById("search").focus();
 </script>
 
