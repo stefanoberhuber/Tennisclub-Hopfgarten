@@ -189,8 +189,8 @@ button{
     <div id="accordionContainer"></div>
     <div id="orderSummary">Kein Produkt gewählt</div>
     <div class="modal-buttons">
-      <button onclick="closeModal()">X</button>
-      <button onclick="saveEntry()">Speichern</button>
+      <button type="button" onclick="closeModal()">X</button>
+      <button type="button" onclick="saveEntry()">Speichern</button>
     </div>
   </div>
 </div>
@@ -202,8 +202,6 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 let members=[], products=[], entnahmen=[];
 let selectedMember=null;
 let selectedProducts={};
-
-/* ---------- Daten laden ---------- */
 
 async function fetchData(table){
   const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
@@ -221,10 +219,7 @@ async function loadData(){
   entnahmen=await fetchData("entnahmen");
   renderRecentMembers();
 }
-
 loadData();
-
-/* ---------- Mitglieder ---------- */
 
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
@@ -246,8 +241,6 @@ function renderMembers(filter=""){
 document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
-
-/* ---------- Recent ---------- */
 
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
@@ -285,61 +278,6 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-/* ---------- Accordion ---------- */
-
-function getTopProducts(){
-  const count={};
-  entnahmen.forEach(e=>{
-    count[e.produkt_id]=(count[e.produkt_id]||0)+e.menge;
-  });
-
-  return products
-    .map(p=>({...p,count:count[p.id]||0}))
-    .sort((a,b)=>b.count-a.count)
-    .slice(0,10);
-}
-
-function renderAccordion(){
-  const container=document.getElementById("accordionContainer");
-  container.innerHTML="";
-  createAccordion("Top 10 meistgekauft",getTopProducts(),true);
-  createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
-  createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
-  createAccordion("Equipment",products.filter(p=>p.kategorie==="Equipment"));
-}
-
-function createAccordion(title,list,open=false){
-  const container=document.getElementById("accordionContainer");
-
-  const header=document.createElement("div");
-  header.className="accordion-header";
-  header.textContent=title;
-
-  const content=document.createElement("div");
-  content.className="accordion-content";
-  if(open) content.style.display="grid";
-
-  list.forEach(p=>{
-    const btn=document.createElement("button");
-    btn.className="product-btn";
-    btn.id="product-"+p.id;
-    btn.textContent=p.name+" ("+p.preis+"€)";
-    btn.onclick=()=>selectProduct(p);
-    content.appendChild(btn);
-  });
-
-  header.onclick=()=>{
-    document.querySelectorAll(".accordion-content")
-      .forEach(c=>c.style.display="none");
-    content.style.display="grid";
-  };
-
-  container.appendChild(header);
-  container.appendChild(content);
-}
-
-/* ---------- PRODUKTLOGIK ---------- */
-
 function selectProduct(p){
   if(!selectedProducts[p.id]){
     selectedProducts[p.id]={...p, qty:1};
@@ -352,13 +290,10 @@ function selectProduct(p){
 
 function changeQty(id,delta){
   if(!selectedProducts[id]) return;
-
   selectedProducts[id].qty+=delta;
-
   if(selectedProducts[id].qty<=0){
     delete selectedProducts[id];
   }
-
   updateSummary();
   updateProductHighlights();
 }
@@ -374,7 +309,7 @@ function updateProductHighlights(){
   });
 }
 
-/* ✅ FIXED SUMMARY (Event Delegation kompatibel) */
+/* ✅ FINAL STABLE SUMMARY */
 
 function updateSummary(){
   const container=document.getElementById("orderSummary");
@@ -393,10 +328,10 @@ function updateSummary(){
     html+=`
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div>${p.name}</div>
-        <div>
-          <button class="qty-btn" data-id="${p.id}" data-delta="-1">-</button>
-          <span style="margin:0 6px;">${p.qty}</span>
-          <button class="qty-btn" data-id="${p.id}" data-delta="1">+</button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button type="button" class="qty-btn" data-id="${p.id}" data-delta="-1">−</button>
+          <span>${p.qty}</span>
+          <button type="button" class="qty-btn" data-id="${p.id}" data-delta="1">+</button>
         </div>
       </div>
     `;
@@ -406,16 +341,17 @@ function updateSummary(){
   container.innerHTML=html;
 }
 
-/* ✅ Event Delegation */
 document.getElementById("orderSummary").addEventListener("click",function(e){
-  if(e.target.classList.contains("qty-btn")){
-    const id=parseInt(e.target.dataset.id);
-    const delta=parseInt(e.target.dataset.delta);
-    changeQty(id,delta);
-  }
-});
+  const btn=e.target.closest(".qty-btn");
+  if(!btn) return;
 
-/* ---------- Speichern ---------- */
+  e.preventDefault();
+  e.stopPropagation();
+
+  const id=parseInt(btn.dataset.id);
+  const delta=parseInt(btn.dataset.delta);
+  changeQty(id,delta);
+});
 
 async function saveEntry(){
   const items=Object.values(selectedProducts);
