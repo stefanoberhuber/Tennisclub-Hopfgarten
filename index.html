@@ -13,7 +13,7 @@ h1{text-align:center;}
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:15px;
-  height:420px;   /* Beide Seiten exakt gleich hoch */
+  height:420px;
 }
 
 .section{
@@ -199,28 +199,40 @@ async function loadData(){
   renderRecentMembers();
 }
 
+/* ---------- Mitglieder (max 10) ---------- */
+
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
-  members
-    .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(m=>{
-      const div=document.createElement("div");
-      div.className="member-item";
-      div.textContent=m.name;
-      div.onclick=()=>openModal(m.id);
-      list.appendChild(div);
-    });
+
+  let filtered = members;
+
+  if(filter !== ""){
+    filtered = members.filter(m =>
+      m.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  }
+
+  filtered.slice(0,10).forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member-item";
+    div.textContent=m.name;
+    div.onclick=()=>openModal(m.id);
+    list.appendChild(div);
+  });
 }
 
 document.getElementById("memberSearch").addEventListener("input",(e)=>{
   renderMembers(e.target.value);
 });
 
+/* ---------- Zuletzt aktiv (unverändert) ---------- */
+
 function renderRecentMembers(){
   const container=document.getElementById("recentMembers");
   container.innerHTML="";
   const recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+
   recent.forEach(m=>{
     const div=document.createElement("div");
     div.className="member-item";
@@ -234,10 +246,11 @@ function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
   recent=recent.filter(m=>m.id!==member.id);
   recent.unshift(member);
-  if(recent.length>10) recent=recent.slice(0,10);
   localStorage.setItem("recentMembers",JSON.stringify(recent));
   renderRecentMembers();
 }
+
+/* ---------- Modal ---------- */
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
@@ -251,14 +264,14 @@ function openModal(id){
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
-  createAccordion("Top 10 meistgekauft", products.slice(0,10), true);
-  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
+  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"), true);
   createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
   createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
 }
 
 function createAccordion(title, productList, open=false){
   const container=document.getElementById("accordionContainer");
+
   const header=document.createElement("div");
   header.className="accordion-header";
   header.textContent=title;
@@ -282,6 +295,8 @@ function createAccordion(title, productList, open=false){
   container.appendChild(header);
   container.appendChild(content);
 }
+
+/* ---------- Bestellung ---------- */
 
 function addProduct(p){
   if(!order[p.id]) order[p.id]={...p, menge:0};
@@ -319,6 +334,8 @@ function updateSummary(){
     html + `<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
 }
 
+/* ---------- Speichern ---------- */
+
 async function saveEntry(){
   if(Object.keys(order).length===0) return;
 
@@ -342,7 +359,6 @@ async function saveEntry(){
 
   updateRecent(selectedMember);
   closeModal();
-  entnahmen = await fetchData("entnahmen");
 }
 
 function closeModal(){
