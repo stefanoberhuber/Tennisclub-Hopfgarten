@@ -22,7 +22,7 @@ body{
 }
 
 .column{
-  flex:1;
+  width:50%; /* FIX: beide exakt gleich breit */
   display:flex;
   flex-direction:column;
 }
@@ -176,7 +176,6 @@ async function loadData(){
   members=await fetchData("mitglieder");
   products=await fetchData("produkte");
   entnahmen=await fetchData("entnahmen");
-  renderMembers();
   renderRecentMembers();
 }
 
@@ -187,6 +186,8 @@ loadData();
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
+
+  if(!filter.trim()) return; // FIX: leer lassen bis Suche
 
   members
     .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
@@ -204,8 +205,7 @@ document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
-/* ---------- Letzte Aktive (localStorage) ---------- */
-
+/* ---------- Rest unverändert ---------- */
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
   recent=recent.filter(m=>m.id!==member.id);
@@ -229,8 +229,6 @@ function renderRecentMembers(){
   });
 }
 
-/* ---------- Modal ---------- */
-
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
   selectedProduct=null;
@@ -245,8 +243,6 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-/* ---------- Top 10 ---------- */
-
 function getTopProducts(){
   const count={};
   entnahmen.forEach(e=>{
@@ -259,12 +255,9 @@ function getTopProducts(){
     .slice(0,10);
 }
 
-/* ---------- Accordion ---------- */
-
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
-
   createAccordion("Top 10 meistgekauft",getTopProducts(),true);
   createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
   createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
@@ -300,8 +293,6 @@ function createAccordion(title,list,open=false){
   container.appendChild(content);
 }
 
-/* ---------- Auswahl ---------- */
-
 function selectProduct(p){
   selectedProduct=p;
   selectedQty=1;
@@ -335,8 +326,6 @@ function updateSummary(){
     <strong>Gesamt: ${total} €</strong>
   `;
 }
-
-/* ---------- Speichern ---------- */
 
 async function saveEntry(){
   if(!selectedProduct) return;
