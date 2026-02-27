@@ -6,42 +6,18 @@
 <title>Tennisclub Entnahmen</title>
 
 <style>
-body{
-  font-family:Arial;
-  margin:0;
-  background:#f4f6f8;
-}
-
-.page-title{
-  text-align:center;
-  font-size:26px;
-  font-weight:bold;
-  padding:20px 0 10px 0;
-}
-
-.section-title{
-  font-size:14px;
-  font-weight:bold;
-  margin-bottom:6px;
-}
-
-.container{
-  display:flex;
-  gap:20px;
-  padding:20px;
-}
+body{font-family:Arial;margin:0;background:#f4f6f8;}
+.page-title{text-align:center;font-size:26px;font-weight:bold;padding:20px 0 10px;}
+.section-title{font-size:14px;font-weight:bold;margin-bottom:6px;}
+.container{display:flex;gap:20px;padding:20px;}
 
 :root{
-  --member-height: 42px;
-  --visible-members: 10;
-  --search-height: 52px;
+  --member-height:42px;
+  --visible-members:10;
+  --search-height:52px;
 }
 
-.column{
-  width:50%;
-  display:flex;
-  flex-direction:column;
-}
+.column{width:50%;display:flex;flex-direction:column;}
 
 .search{
   height:var(--search-height);
@@ -52,23 +28,18 @@ body{
 }
 
 #recentList{
-  height: calc(var(--member-height) * var(--visible-members));
+  height:calc(var(--member-height)*var(--visible-members));
 }
 
 #memberList{
-  height: calc(
-    (var(--member-height) * var(--visible-members))
+  height:calc(
+    (var(--member-height)*var(--visible-members))
     - var(--search-height)
     - 10px
   );
 }
 
-.list{
-  background:white;
-  border-radius:8px;
-  overflow:hidden;
-}
-
+.list{background:white;border-radius:8px;overflow:hidden;}
 .member{
   height:var(--member-height);
   line-height:var(--member-height);
@@ -76,112 +47,53 @@ body{
   border-bottom:1px solid #eee;
   cursor:pointer;
 }
+.member:hover{background:#f0f0f0;}
 
-.member:hover{
-  background:#f0f0f0;
-}
+/* Tabelle */
+.entnahmen-container{padding:20px;}
+#entnahmenTable{width:100%;border-collapse:collapse;background:white;font-size:14px;}
+#entnahmenTable th{background:#e9ecef;cursor:pointer;padding:8px;border-bottom:1px solid #ddd;}
+#entnahmenTable td{padding:6px;border-bottom:1px solid #eee;}
+#entnahmenTable input{width:95%;padding:4px;font-size:12px;}
 
-/* ---------- ENTNAHMEN ---------- */
-
-.entnahmen-container{
-  padding:20px;
-}
-
-#entnahmenList .entry{
-  padding:8px 10px;
-  border-bottom:1px solid #eee;
-  font-size:14px;
-  display:flex;
-  justify-content:space-between;
-}
-
-/* ---------- Modal ---------- */
-
+/* Modal */
 #modalOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  display:none;
-  justify-content:center;
-  align-items:center;
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  display:none;justify-content:center;align-items:center;
 }
-
 .modal{
-  background:white;
-  width:90%;
-  max-width:500px;
-  max-height:90vh;
-  border-radius:12px;
-  padding:15px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+  background:white;width:90%;max-width:500px;
+  max-height:90vh;border-radius:12px;padding:15px;
+  display:flex;flex-direction:column;overflow:hidden;
 }
-
 .accordion-header{
-  padding:8px;
-  background:#e9ecef;
-  margin-top:6px;
-  cursor:pointer;
-  border-radius:6px;
-  font-weight:bold;
+  padding:8px;background:#e9ecef;margin-top:6px;
+  cursor:pointer;border-radius:6px;font-weight:bold;
 }
-
 .accordion-content{
-  display:none;
-  grid-template-columns:repeat(2,1fr);
-  gap:6px;
-  margin-top:6px;
+  display:none;grid-template-columns:repeat(2,1fr);
+  gap:6px;margin-top:6px;
 }
-
 .product-btn{
-  padding:6px;
-  font-size:14px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  cursor:pointer;
+  padding:6px;font-size:14px;border-radius:6px;
+  border:1px solid #ccc;cursor:pointer;
 }
-
 .product-btn.active{
-  background:#198754;
-  color:white;
-  border-color:#198754;
+  background:#198754;color:white;border-color:#198754;
 }
-
-#orderSummary{
-  margin-top:10px;
-  font-size:14px;
-}
-
+#orderSummary{margin-top:10px;font-size:14px;}
+.modal-buttons{margin-top:auto;display:flex;justify-content:space-between;}
 .modal-buttons button:last-child{
-  background:#198754;
-  color:white;
-  font-weight:bold;
-  border:none;
-  padding:10px 16px;
+  background:#198754;color:white;font-weight:bold;
+  border:none;padding:10px 16px;
 }
-  
-.modal-buttons{
-  margin-top:auto;
-  display:flex;
-  justify-content:space-between;
-}
-
-button{
-  padding:6px 10px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  background:white;
-  cursor:pointer;
-}
+button{padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:white;cursor:pointer;}
 </style>
 </head>
 
 <body>
 
-<div class="page-title">
-  Entnahme Kühlschrank TC Hopfgarten
-</div>
+<div class="page-title">Entnahme Kühlschrank TC Hopfgarten</div>
 
 <div class="container">
   <div class="column">
@@ -189,22 +101,21 @@ button{
     <input type="text" id="search" class="search" placeholder="Mitglied suchen...">
     <div id="memberList" class="list"></div>
   </div>
-
   <div class="column">
     <div class="section-title">Letzte aktive Mitglieder</div>
     <div id="recentList" class="list"></div>
   </div>
 </div>
 
-<!-- NEU: ENTNAHMEN LISTE -->
-
 <div class="entnahmen-container">
-  <div class="section-title">Entnahmen</div>
-  <input type="date" id="filterDate" style="padding:8px;margin-bottom:10px;">
-  <div id="entnahmenList" class="list"></div>
+  <div class="section-title">Entnahmen Übersicht</div>
+  <div style="overflow:auto;">
+    <table id="entnahmenTable">
+      <thead id="entnahmenHead"></thead>
+      <tbody id="entnahmenBody"></tbody>
+    </table>
+  </div>
 </div>
-
-<!-- MODAL -->
 
 <div id="modalOverlay">
   <div class="modal">
@@ -212,8 +123,8 @@ button{
     <div id="accordionContainer"></div>
     <div id="orderSummary">Kein Produkt gewählt</div>
     <div class="modal-buttons">
-      <button type="button" onclick="closeModal()">X</button>
-      <button type="button" onclick="saveEntry()">Speichern</button>
+      <button onclick="closeModal()">X</button>
+      <button onclick="saveEntry()">Speichern</button>
     </div>
   </div>
 </div>
@@ -222,95 +133,34 @@ button{
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
 const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
-let members=[];
-let products=[];
-let entnahmen=[];
-let selectedMember=null;
-let selectedProducts={};
+let members=[],products=[],entnahmen=[];
+let selectedMember=null,selectedProducts={};
+let currentSortColumn="created_at",currentSortDesc=true,columnFilters={};
 
-/* ================= FETCH ================= */
-
+/* FETCH */
 async function fetchData(table){
-  try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
-      headers:{
-        apikey:SUPABASE_KEY,
-        Authorization:`Bearer ${SUPABASE_KEY}`
-      }
-    });
-    if(!res.ok) return [];
-    return await res.json();
-  }catch(e){
-    return [];
-  }
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
+    headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}
+  });
+  return res.ok?await res.json():[];
 }
 
 async function loadData(){
-  members = await fetchData("mitglieder") || [];
-  products = await fetchData("produkte") || [];
-  entnahmen = await fetchData("entnahmen") || [];
+  members=await fetchData("mitglieder");
+  products=await fetchData("produkte");
+  entnahmen=await fetchData("entnahmen");
   renderRecentMembers();
-  setTodayFilter();
-  renderEntnahmen();
+  renderEntnahmenTable();
 }
 loadData();
 
-/* ================= ENTNAHMEN ================= */
-
-function setTodayFilter(){
-  const today=new Date().toISOString().split("T")[0];
-  document.getElementById("filterDate").value=today;
-}
-
-document.getElementById("filterDate").addEventListener("change",renderEntnahmen);
-
-function renderEntnahmen(){
-  const container=document.getElementById("entnahmenList");
-  container.innerHTML="";
-  const selectedDate=document.getElementById("filterDate").value;
-  if(!selectedDate) return;
-
-  const filtered=entnahmen.filter(e=>
-    e.created_at && e.created_at.startsWith(selectedDate)
-  );
-
-  if(filtered.length===0){
-    container.innerHTML="<div style='padding:10px;'>Keine Entnahmen an diesem Tag</div>";
-    return;
-  }
-
-  filtered
-    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
-    .forEach(e=>{
-      const member=members.find(m=>m.id==e.mitglied_id);
-      const product=products.find(p=>p.id==e.produkt_id);
-
-      const div=document.createElement("div");
-      div.className="entry";
-
-      div.innerHTML=`
-        <div>
-          <strong>${member?member.name:"Unbekannt"}</strong><br>
-          ${product?product.name:"Produkt?"} (${e.menge})
-        </div>
-        <div>
-          ${(Number(e.gesamtpreis)||0).toFixed(2)} €
-        </div>
-      `;
-
-      container.appendChild(div);
-    });
-}
-
-/* ================= MITGLIEDER ================= */
-
+/* Mitglieder */
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
   if(!filter.trim()) return;
-
   members
-    .filter(m=>m && m.name && m.name.toLowerCase().includes(filter.toLowerCase()))
+    .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
     .slice(0,10)
     .forEach(m=>{
       const div=document.createElement("div");
@@ -320,13 +170,10 @@ function renderMembers(filter=""){
       list.appendChild(div);
     });
 }
+document.getElementById("search")
+  .addEventListener("input",e=>renderMembers(e.target.value));
 
-document.getElementById("search").addEventListener("input",e=>{
-  renderMembers(e.target.value);
-});
-
-/* ================= RECENT ================= */
-
+/* Recent */
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
   recent=recent.filter(m=>m.id!==member.id);
@@ -335,12 +182,10 @@ function updateRecent(member){
   localStorage.setItem("recentMembers",JSON.stringify(recent));
   renderRecentMembers();
 }
-
 function renderRecentMembers(){
   const list=document.getElementById("recentList");
   list.innerHTML="";
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-
   recent.forEach(m=>{
     const div=document.createElement("div");
     div.className="member";
@@ -350,57 +195,44 @@ function renderRecentMembers(){
   });
 }
 
-/* ================= MODAL + REST BLEIBT UNVERÄNDERT ================= */
-
+/* Modal */
 function openModal(id){
-  selectedMember = members.find(m=>m.id==id);
-  if(!selectedMember){ alert("Mitglied nicht gefunden"); return; }
-
+  selectedMember=members.find(m=>m.id==id);
+  if(!selectedMember) return;
   selectedProducts={};
-
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
-
   renderAccordion();
   updateSummary();
 }
-
 function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
-
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
 
-/* ================= ACCORDION ================= */
-
+/* Accordion */
 function getTopProducts(){
   const count={};
   entnahmen.forEach(e=>{
-    const pid=e.produkt_id;
-    count[pid]=(count[pid]||0)+(e.menge||0);
+    count[e.produkt_id]=(count[e.produkt_id]||0)+(e.menge||0);
   });
-
   return products
     .map(p=>({...p,count:count[p.id]||0}))
     .sort((a,b)=>b.count-a.count)
     .slice(0,10);
 }
-
 function renderAccordion(){
-  const container=document.getElementById("accordionContainer");
-  container.innerHTML="";
-
-  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
-  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
-  createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
-  createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
+  const c=document.getElementById("accordionContainer");
+  c.innerHTML="";
+  createAccordion("Top 10 meistgekauft",getTopProducts(),true);
+  createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
+  createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
+  createAccordion("Equipment",products.filter(p=>p.kategorie==="Equipment"));
 }
-
 function createAccordion(title,list,open=false){
   const container=document.getElementById("accordionContainer");
-
   const header=document.createElement("div");
   header.className="accordion-header";
   header.textContent=title;
@@ -409,11 +241,14 @@ function createAccordion(title,list,open=false){
   content.className="accordion-content";
   content.style.display=open?"grid":"none";
 
-  (list||[]).forEach(p=>{
-    if(!p||!p.id||!p.name) return;
+  header.onclick=()=>{
+    document.querySelectorAll(".accordion-content")
+      .forEach(c=>c.style.display="none");
+    content.style.display="grid";
+  };
 
+  list.forEach(p=>{
     const btn=document.createElement("button");
-    btn.type="button";
     btn.className="product-btn";
     btn.id="product-"+p.id;
     btn.textContent=`${p.name} (${Number(p.preis||0).toFixed(2)}€)`;
@@ -421,58 +256,41 @@ function createAccordion(title,list,open=false){
     content.appendChild(btn);
   });
 
-  header.onclick=()=>{
-    document.querySelectorAll(".accordion-content")
-      .forEach(c=>c.style.display="none");
-    content.style.display="grid";
-  };
-
   container.appendChild(header);
   container.appendChild(content);
 }
 
-/* ================= PRODUKTE ================= */
-
+/* Produkte */
 function selectProduct(p){
   if(!selectedProducts[p.id]){
-    selectedProducts[p.id]={...p, qty:1, preis:Number(p.preis)||0};
+    selectedProducts[p.id]={...p,qty:1,preis:Number(p.preis)||0};
   }else{
     selectedProducts[p.id].qty++;
   }
   updateSummary();
   updateHighlights();
 }
-
 function changeQty(id,delta){
   if(!selectedProducts[id]) return;
   selectedProducts[id].qty+=delta;
-  if(selectedProducts[id].qty<=0){ delete selectedProducts[id]; }
+  if(selectedProducts[id].qty<=0) delete selectedProducts[id];
   updateSummary();
   updateHighlights();
 }
-
 function updateHighlights(){
-  document.querySelectorAll(".product-btn").forEach(btn=>{
-    btn.classList.remove("active");
-  });
-  Object.keys(selectedProducts).forEach(id=>{
-    const btn=document.getElementById("product-"+id);
-    if(btn) btn.classList.add("active");
-  });
+  document.querySelectorAll(".product-btn")
+    .forEach(b=>b.classList.remove("active"));
+  Object.keys(selectedProducts)
+    .forEach(id=>{
+      const btn=document.getElementById("product-"+id);
+      if(btn) btn.classList.add("active");
+    });
 }
-
 function updateSummary(){
-  const container=document.getElementById("orderSummary");
+  const c=document.getElementById("orderSummary");
   const items=Object.values(selectedProducts);
-
-  if(items.length===0){
-    container.innerHTML="Kein Produkt gewählt";
-    return;
-  }
-
-  let html="";
-  let total=0;
-
+  if(!items.length){c.innerHTML="Kein Produkt gewählt";return;}
+  let html="",total=0;
   items.forEach(p=>{
     total+=p.qty*p.preis;
     html+=`
@@ -483,19 +301,16 @@ function updateSummary(){
           ${p.qty}
           <button onclick="changeQty('${p.id}',1)">+</button>
         </div>
-      </div>
-    `;
+      </div>`;
   });
-
   html+=`<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
-  container.innerHTML=html;
+  c.innerHTML=html;
 }
 
-/* ================= SPEICHERN ================= */
-
+/* Save */
 async function saveEntry(){
   const items=Object.values(selectedProducts);
-  if(items.length===0) return;
+  if(!items.length) return;
 
   for(const p of items){
     await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
@@ -516,11 +331,71 @@ async function saveEntry(){
   }
 
   updateRecent(selectedMember);
-  entnahmen = await fetchData("entnahmen");
-  renderEntnahmen();   // ← wichtig
+  entnahmen=await fetchData("entnahmen");
+  renderEntnahmenTable();
   closeModal();
 }
-</script>
 
+/* Tabelle */
+function renderEntnahmenTable(){
+  const head=document.getElementById("entnahmenHead");
+  const body=document.getElementById("entnahmenBody");
+  head.innerHTML="";body.innerHTML="";
+  if(!entnahmen.length){body.innerHTML="<tr><td>Keine Daten</td></tr>";return;}
+
+  const columns=Object.keys(entnahmen[0]);
+  const headerRow=document.createElement("tr");
+  const filterRow=document.createElement("tr");
+
+  columns.forEach(col=>{
+    const th=document.createElement("th");
+    th.textContent=col;
+    th.onclick=()=>{
+      if(currentSortColumn===col){currentSortDesc=!currentSortDesc;}
+      else{currentSortColumn=col;currentSortDesc=true;}
+      renderEntnahmenTable();
+    };
+    headerRow.appendChild(th);
+
+    const f=document.createElement("th");
+    const input=document.createElement("input");
+    input.value=columnFilters[col]||"";
+    input.oninput=e=>{
+      columnFilters[col]=e.target.value.toLowerCase();
+      renderEntnahmenTable();
+    };
+    f.appendChild(input);
+    filterRow.appendChild(f);
+  });
+
+  head.appendChild(headerRow);
+  head.appendChild(filterRow);
+
+  let filtered=entnahmen.filter(r=>
+    columns.every(col=>{
+      if(!columnFilters[col]) return true;
+      return String(r[col]).toLowerCase().includes(columnFilters[col]);
+    })
+  );
+
+  filtered.sort((a,b)=>{
+    let A=a[currentSortColumn],B=b[currentSortColumn];
+    if(!isNaN(Date.parse(A))){A=new Date(A);B=new Date(B);}
+    if(A<B) return currentSortDesc?1:-1;
+    if(A>B) return currentSortDesc?-1:1;
+    return 0;
+  });
+
+  filtered.forEach(r=>{
+    const tr=document.createElement("tr");
+    columns.forEach(col=>{
+      const td=document.createElement("td");
+      td.textContent=r[col];
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+</script>
 </body>
 </html>
