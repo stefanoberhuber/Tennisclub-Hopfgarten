@@ -14,7 +14,6 @@ body{
   background:#f4f6f8;
 }
 
-/* NEU: Seitenüberschrift */
 .page-title{
   text-align:center;
   font-size:26px;
@@ -22,7 +21,6 @@ body{
   padding:20px 0 10px 0;
 }
 
-/* NEU: kleine Spaltenüberschrift */
 .section-title{
   font-size:14px;
   font-weight:bold;
@@ -36,8 +34,6 @@ body{
   padding:20px;
 }
 
-/* ---------- Fixe Höhe für exakt 10 Mitglieder ---------- */
-
 :root{
   --member-height: 42px;
   --visible-members: 10;
@@ -50,7 +46,6 @@ body{
   flex-direction:column;
 }
 
-/* Suchfeld */
 .search{
   height:var(--search-height);
   padding:10px;
@@ -59,12 +54,10 @@ body{
   box-sizing:border-box;
 }
 
-/* Rechte Liste exakt 10 Mitglieder */
 #recentList{
   height: calc(var(--member-height) * var(--visible-members));
 }
 
-/* Linke Liste + Suchfeld exakt gleiche Gesamthöhe */
 #memberList{
   height: calc(
     (var(--member-height) * var(--visible-members))
@@ -80,7 +73,6 @@ body{
   overflow:hidden;
 }
 
-/* Mitglied exakt definierte Höhe */
 .member{
   height:var(--member-height);
   line-height:var(--member-height);
@@ -166,21 +158,18 @@ button{
 
 <body>
 
-<!-- NEU: Hauptüberschrift -->
 <div class="page-title">
   Entnahme Kühlschrank TC Hopfgarten
 </div>
 
 <div class="container">
 
-  <!-- Linke Liste -->
   <div class="column">
     <div class="section-title">Suche</div>
     <input type="text" id="search" class="search" placeholder="Mitglied suchen...">
     <div id="memberList" class="list"></div>
   </div>
 
-  <!-- Rechte Liste -->
   <div class="column">
     <div class="section-title">Letzte aktive Mitglieder</div>
     <div id="recentList" class="list"></div>
@@ -188,7 +177,6 @@ button{
 
 </div>
 
-<!-- Modal -->
 <div id="modalOverlay">
   <div class="modal">
     <h3 id="modalMemberName"></h3>
@@ -207,8 +195,9 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[], products=[], entnahmen=[];
 let selectedMember=null;
-let selectedProduct=null;
-let selectedQty=1;
+
+/* NEU: mehrere Produkte */
+let selectedProducts={};
 
 /* ---------- Daten laden ---------- */
 
@@ -236,7 +225,6 @@ loadData();
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
-
   if(!filter.trim()) return;
 
   members
@@ -255,7 +243,7 @@ document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
-/* ---------- Rest unverändert ---------- */
+/* ---------- Rest unverändert bis Modal ---------- */
 
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
@@ -282,8 +270,7 @@ function renderRecentMembers(){
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
-  selectedProduct=null;
-  selectedQty=1;
+  selectedProducts={};   // RESET
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
   renderAccordion();
@@ -294,117 +281,81 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-function getTopProducts(){
-  const count={};
-  entnahmen.forEach(e=>{
-    count[e.produkt_id]=(count[e.produkt_id]||0)+e.menge;
-  });
-
-  return products
-    .map(p=>({...p,count:count[p.id]||0}))
-    .sort((a,b)=>b.count-a.count)
-    .slice(0,10);
-}
-
-function renderAccordion(){
-  const container=document.getElementById("accordionContainer");
-  container.innerHTML="";
-  createAccordion("Top 10 meistgekauft",getTopProducts(),true);
-  createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
-  createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
-  createAccordion("Equipment",products.filter(p=>p.kategorie==="Equipment"));
-}
-
-function createAccordion(title,list,open=false){
-  const container=document.getElementById("accordionContainer");
-
-  const header=document.createElement("div");
-  header.className="accordion-header";
-  header.textContent=title;
-
-  const content=document.createElement("div");
-  content.className="accordion-content";
-  if(open) content.style.display="grid";
-
-  list.forEach(p=>{
-    const btn=document.createElement("button");
-    btn.className="product-btn";
-    btn.textContent=p.name+" ("+p.preis+"€)";
-    btn.onclick=()=>selectProduct(p);
-    content.appendChild(btn);
-  });
-
-  header.onclick=()=>{
-    document.querySelectorAll(".accordion-content")
-      .forEach(c=>c.style.display="none");
-    content.style.display="grid";
-  };
-
-  container.appendChild(header);
-  container.appendChild(content);
-}
+/* ---------- PRODUKTE ---------- */
 
 function selectProduct(p){
-  selectedProduct=p;
-  selectedQty=1;
+  if(!selectedProducts[p.id]){
+    selectedProducts[p.id]={...p, qty:1};
+  }else{
+    selectedProducts[p.id].qty++;
+  }
   updateSummary();
 }
 
-function changeQty(delta){
-  selectedQty+=delta;
-  if(selectedQty<1) selectedQty=1;
+function changeQty(id,delta){
+  selectedProducts[id].qty+=delta;
+  if(selectedProducts[id].qty<=0){
+    delete selectedProducts[id];
+  }
   updateSummary();
 }
 
 function updateSummary(){
-  if(!selectedProduct){
-    document.getElementById("orderSummary").innerHTML="Kein Produkt gewählt";
+  const container=document.getElementById("orderSummary");
+  const items=Object.values(selectedProducts);
+
+  if(items.length===0){
+    container.innerHTML="Kein Produkt gewählt";
     return;
   }
 
-  const total=(selectedQty*selectedProduct.preis).toFixed(2);
+  let html="";
+  let total=0;
 
-  document.getElementById("orderSummary").innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div>${selectedProduct.name}</div>
-      <div>
-        <button onclick="changeQty(-1)">-</button>
-        ${selectedQty}
-        <button onclick="changeQty(1)">+</button>
+  items.forEach(p=>{
+    total+=p.qty*p.preis;
+    html+=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div>${p.name}</div>
+        <div>
+          <button onclick="changeQty(${p.id},-1)">-</button>
+          ${p.qty}
+          <button onclick="changeQty(${p.id},1)">+</button>
+        </div>
       </div>
-    </div>
-    <hr>
-    <strong>Gesamt: ${total} €</strong>
-  `;
+    `;
+  });
+
+  html+=`<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
+  container.innerHTML=html;
 }
 
 async function saveEntry(){
-  if(!selectedProduct) return;
+  const items=Object.values(selectedProducts);
+  if(items.length===0) return;
 
-  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
-    method:"POST",
-    headers:{
-      apikey:SUPABASE_KEY,
-      Authorization:`Bearer ${SUPABASE_KEY}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      mitglied_id:selectedMember.id,
-      produkt_id:selectedProduct.id,
-      menge:selectedQty,
-      gesamtpreis:selectedQty*selectedProduct.preis,
-      bezahlt:false
-    })
-  });
+  for(const p of items){
+    await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        mitglied_id:selectedMember.id,
+        produkt_id:p.id,
+        menge:p.qty,
+        gesamtpreis:p.qty*p.preis,
+        bezahlt:false
+      })
+    });
+  }
 
   updateRecent(selectedMember);
   entnahmen=await fetchData("entnahmen");
   closeModal();
 }
-
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape") closeModal();
-});
 </script>
 
 </body>
