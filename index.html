@@ -258,6 +258,31 @@ document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
+/* ================= RECENT ================= */
+
+function updateRecent(member){
+  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+  recent=recent.filter(m=>m.id!==member.id);
+  recent.unshift(member);
+  recent=recent.slice(0,10);
+  localStorage.setItem("recentMembers",JSON.stringify(recent));
+  renderRecentMembers();
+}
+
+function renderRecentMembers(){
+  const list=document.getElementById("recentList");
+  list.innerHTML="";
+  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+
+  recent.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member";
+    div.textContent=m.name;
+    div.onclick=()=>openModal(m.id);
+    list.appendChild(div);
+  });
+}
+
 /* ================= MODAL ================= */
 
 function openModal(id){
@@ -275,6 +300,15 @@ function openModal(id){
   renderAccordion();
   updateSummary();
 }
+
+function closeModal(){
+  document.getElementById("modalOverlay").style.display="none";
+}
+
+/* ESC funktioniert jetzt */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") closeModal();
+});
 
 /* ================= ACCORDION ================= */
 
@@ -406,7 +440,7 @@ function updateSummary(){
   container.innerHTML=html;
 }
 
-/* ================= SAVE ================= */
+/* ================= SPEICHERN ================= */
 
 async function saveEntry(){
   const items=Object.values(selectedProducts);
@@ -430,12 +464,10 @@ async function saveEntry(){
     });
   }
 
-  closeModal();
+  updateRecent(selectedMember);   // 🔥 FIX
+  entnahmen = await fetchData("entnahmen");  // 🔥 FIX
+  closeModal();  // 🔥 FIX
 }
-
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape") closeModal();
-});
 </script>
 
 </body>
