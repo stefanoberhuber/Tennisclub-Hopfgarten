@@ -173,13 +173,15 @@ h1{text-align:center;}
   </div>
 </div>
 
+<!-- NUR SCRIPT TEIL GEÄNDERT – CSS & HTML bleiben gleich -->
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
 const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[], products=[], entnahmen=[];
 let selectedMember=null;
-let order={};
+let selectedProduct=null;
+let selectedQty=1;
 
 async function fetchData(table){
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
@@ -199,72 +201,41 @@ async function loadData(){
   renderRecentMembers();
 }
 
-/* ---------- Mitglieder (max 10) ---------- */
-
-function renderMembers(filter=""){
-  const list=document.getElementById("memberList");
-  list.innerHTML="";
-
-  let filtered = members;
-
-  if(filter !== ""){
-    filtered = members.filter(m =>
-      m.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }
-
-  filtered.slice(0,10).forEach(m=>{
-    const div=document.createElement("div");
-    div.className="member-item";
-    div.textContent=m.name;
-    div.onclick=()=>openModal(m.id);
-    list.appendChild(div);
-  });
-}
-
-document.getElementById("memberSearch").addEventListener("input",(e)=>{
-  renderMembers(e.target.value);
-});
-
-/* ---------- Zuletzt aktiv (unverändert) ---------- */
-
-function renderRecentMembers(){
-  const container=document.getElementById("recentMembers");
-  container.innerHTML="";
-  const recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-
-  recent.forEach(m=>{
-    const div=document.createElement("div");
-    div.className="member-item";
-    div.textContent=m.name;
-    div.onclick=()=>openModal(m.id);
-    container.appendChild(div);
-  });
-}
-
-function updateRecent(member){
-  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-  recent=recent.filter(m=>m.id!==member.id);
-  recent.unshift(member);
-  localStorage.setItem("recentMembers",JSON.stringify(recent));
-  renderRecentMembers();
-}
-
 /* ---------- Modal ---------- */
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
-  order={};
+  selectedProduct=null;
+  selectedQty=1;
   renderAccordion();
   updateSummary();
 }
 
+/* ---------- TOP 10 aus Entnahmen ---------- */
+
+function getTopProducts(){
+  const count={};
+
+  entnahmen.forEach(e=>{
+    count[e.produkt_id]=(count[e.produkt_id]||0)+e.menge;
+  });
+
+  return products
+    .map(p=>({...p, count:count[p.id]||0}))
+    .sort((a,b)=>b.count-a.count)
+    .slice(0,10);
+}
+
+/* ---------- Accordion ---------- */
+
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
-  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"), true);
+
+  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
+  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
   createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
   createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
 }
@@ -278,74 +249,68 @@ function createAccordion(title, productList, open=false){
 
   const content=document.createElement("div");
   content.className="accordion-content";
+
   if(open) content.style.display="grid";
 
   productList.forEach(p=>{
     const btn=document.createElement("button");
     btn.className="product-btn";
     btn.textContent=p.name+" ("+p.preis+"€)";
-    btn.onclick=()=>addProduct(p);
+    btn.onclick=()=>selectProduct(p);
     content.appendChild(btn);
   });
 
   header.onclick=()=>{
-    content.style.display = content.style.display==="grid" ? "none" : "grid";
+    document.querySelectorAll(".accordion-content")
+      .forEach(c=>c.style.display="none");
+    content.style.display="grid";
   };
 
   container.appendChild(header);
   container.appendChild(content);
 }
 
-/* ---------- Bestellung ---------- */
+/* ---------- Produktauswahl (nur eins erlaubt) ---------- */
 
-function addProduct(p){
-  if(!order[p.id]) order[p.id]={...p, menge:0};
-  order[p.id].menge++;
+function selectProduct(p){
+  selectedProduct=p;
+  selectedQty=1;
   updateSummary();
 }
 
-function changeQty(id, delta){
-  order[id].menge+=delta;
-  if(order[id].menge<=0) delete order[id];
+function changeQty(delta){
+  if(!selectedProduct) return;
+  selectedQty+=delta;
+  if(selectedQty<1) selectedQty=1;
   updateSummary();
 }
 
 function updateSummary(){
-  let html="";
-  let total=0;
+  if(!selectedProduct){
+    document.getElementById("orderSummary").innerHTML="Kein Produkt gewählt";
+    return;
+  }
 
-  Object.values(order).forEach(item=>{
-    total+=item.menge*item.preis;
-    html+=`
-      <div class="order-item">
-        <div>${item.name}</div>
-        <div>
-          <button class="qty-btn" onclick="changeQty(${item.id},-1)">-</button>
-          ${item.menge}
-          <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
-        </div>
+  const total=(selectedQty*selectedProduct.preis).toFixed(2);
+
+  document.getElementById("orderSummary").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>${selectedProduct.name}</div>
+      <div>
+        <button onclick="changeQty(-1)">-</button>
+        ${selectedQty}
+        <button onclick="changeQty(1)">+</button>
       </div>
-    `;
-  });
-
-  if(html==="") html="Keine Produkte gewählt";
-
-  document.getElementById("orderSummary").innerHTML=
-    html + `<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
+    </div>
+    <hr>
+    <strong>Gesamt: ${total} €</strong>
+  `;
 }
 
-/* ---------- Speichern ---------- */
+/* ---------- Speichern (GENAU EINE ENTNAHME) ---------- */
 
 async function saveEntry(){
-  if(Object.keys(order).length===0) return;
-
-  const entries = Object.values(order).map(item=>({
-    mitglied_id:selectedMember.id,
-    produkt_id:item.id,
-    menge:item.menge,
-    gesamtpreis:item.menge*item.preis,
-    bezahlt:false
-  }));
+  if(!selectedProduct) return;
 
   await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
     method:"POST",
@@ -354,10 +319,17 @@ async function saveEntry(){
       "Authorization":`Bearer ${SUPABASE_KEY}`,
       "Content-Type":"application/json"
     },
-    body:JSON.stringify(entries)
+    body:JSON.stringify({
+      mitglied_id:selectedMember.id,
+      produkt_id:selectedProduct.id,
+      menge:selectedQty,
+      gesamtpreis:selectedQty*selectedProduct.preis,
+      bezahlt:false
+    })
   });
 
   updateRecent(selectedMember);
+  entnahmen = await fetchData("entnahmen");
   closeModal();
 }
 
@@ -371,6 +343,6 @@ document.addEventListener("keydown",e=>{
 
 loadData();
 </script>
-
+  
 </body>
 </html>
