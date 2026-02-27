@@ -12,7 +12,12 @@ h1{text-align:center;}
 .layout{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:15px;
+}
+
+.section{
+  display:flex;
+  flex-direction:column;
 }
 
 .section-title{
@@ -32,8 +37,9 @@ h1{text-align:center;}
   background:white;
   border-radius:6px;
   padding:5px;
-  height:300px;
+  height:350px;              /* <-- gleiche feste Höhe */
   overflow-y:auto;
+  box-shadow:0 2px 5px rgba(0,0,0,0.05);
 }
 
 .member-item{
@@ -58,7 +64,7 @@ h1{text-align:center;}
 #modal{
   background:white;
   width:95%;
-  max-width:450px;
+  max-width:460px;
   max-height:90vh;
   overflow-y:auto;
   border-radius:10px;
@@ -79,7 +85,7 @@ h1{text-align:center;}
   margin-top:5px;
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:5px;
+  gap:6px;
 }
 
 .product-btn{
@@ -97,7 +103,7 @@ h1{text-align:center;}
 }
 
 .total{
-  margin-top:10px;
+  margin-top:12px;
   padding:10px;
   background:#f8f9fa;
   border-radius:6px;
@@ -124,15 +130,18 @@ h1{text-align:center;}
 <h1>Tennisclub System</h1>
 
 <div class="layout">
-  <div>
+
+  <div class="section">
     <div class="section-title">Mitglieder</div>
     <input type="text" id="memberSearch" class="member-search" placeholder="Mitglied suchen...">
     <div class="member-container" id="memberList"></div>
   </div>
-  <div>
+
+  <div class="section">
     <div class="section-title">Zuletzt aktiv</div>
     <div class="member-container" id="recentMembers"></div>
   </div>
+
 </div>
 
 <div id="modalOverlay">
@@ -153,7 +162,7 @@ h1{text-align:center;}
 
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
-const SUPABASE_KEY="DEIN_KEY_HIER";
+const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[], products=[], entnahmen=[];
 let selectedMember=null;
@@ -237,6 +246,7 @@ function renderAccordion(){
 
 function createAccordion(title, productList, open=false){
   const container=document.getElementById("accordionContainer");
+
   const header=document.createElement("div");
   header.className="accordion-header";
   header.textContent=title;
@@ -259,6 +269,18 @@ function createAccordion(title, productList, open=false){
 
   container.appendChild(header);
   container.appendChild(content);
+}
+
+function getTopProducts(){
+  const countMap={};
+  entnahmen.forEach(e=>{
+    countMap[e.produkt_id]=(countMap[e.produkt_id]||0)+e.menge;
+  });
+
+  return products
+    .map(p=>({ ...p, count: countMap[p.id]||0 }))
+    .sort((a,b)=>b.count-a.count)
+    .slice(0,10);
 }
 
 function addProduct(p){
