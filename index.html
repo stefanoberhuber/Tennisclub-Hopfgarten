@@ -1,179 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Tennisclub System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennisclub Entnahmen</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body { font-family: Arial; margin:10px; background:#f4f6f9;}
-h1{text-align:center;}
-
-.layout{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  height:420px;
+body{
+  font-family:Arial;
+  margin:0;
+  background:#f4f6f8;
 }
 
-.section{
+.container{
+  display:flex;
+  gap:20px;
+  padding:20px;
+  height:90vh;
+}
+
+.column{
+  flex:1;
   display:flex;
   flex-direction:column;
-  height:100%;
 }
 
-.section-title{
-  font-weight:bold;
-  margin-bottom:6px;
+.search{
+  padding:10px;
+  margin-bottom:10px;
+  font-size:16px;
 }
 
-.member-search{
-  width:100%;
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  margin-bottom:6px;
-  box-sizing:border-box;
-}
-
-.member-container{
+.list{
   flex:1;
+  overflow:hidden;
   background:white;
-  border-radius:6px;
-  padding:5px;
-  overflow-y:auto;
-  box-shadow:0 2px 5px rgba(0,0,0,0.05);
+  border-radius:8px;
+  padding:10px;
 }
 
-.member-item{
+.member{
   padding:8px;
   border-bottom:1px solid #eee;
   cursor:pointer;
 }
 
-.member-item:hover{background:#e8f0ff;}
-
-#modalOverlay{
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.5);
-  justify-content:center;
-  align-items:center;
-  z-index:1000;
+.member:hover{
+  background:#f0f0f0;
 }
 
-#modal{
+/* Modal */
+
+#modalOverlay{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal{
   background:white;
-  width:95%;
-  max-width:460px;
+  width:90%;
+  max-width:500px;
   max-height:90vh;
-  overflow-y:auto;
-  border-radius:10px;
+  border-radius:12px;
   padding:15px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 
 .accordion-header{
-  font-weight:bold;
   padding:8px;
   background:#e9ecef;
-  margin-top:8px;
-  border-radius:6px;
+  margin-top:6px;
   cursor:pointer;
+  border-radius:6px;
+  font-weight:bold;
 }
 
 .accordion-content{
   display:none;
-  margin-top:5px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(2,1fr);
   gap:6px;
+  margin-top:6px;
 }
 
 .product-btn{
-  padding:8px;
-  border:none;
-  border-radius:6px;
-  background:#007bff;
-  color:white;
+  padding:6px;
   font-size:14px;
+  border-radius:6px;
+  border:1px solid #ccc;
   cursor:pointer;
 }
 
-.product-btn:hover{ background:#0056b3; }
+#orderSummary{
+  margin-top:10px;
+  font-size:14px;
+}
 
-.order-item{
+.modal-buttons{
+  margin-top:auto;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin-bottom:6px;
 }
 
-.qty-btn{
-  padding:2px 8px;
-  margin:0 4px;
-}
-
-.total{
-  margin-top:10px;
-  padding:10px;
-  background:#f8f9fa;
+button{
+  padding:8px 12px;
   border-radius:6px;
-  font-size:14px;
-}
-
-.save-btn, .close-btn{
-  padding:12px;
-  width:45%;
-  margin:10px 2.5%;
   border:none;
-  border-radius:6px;
-  font-size:16px;
   cursor:pointer;
 }
-
-.save-btn{background:#28a745; color:white;}
-.close-btn{background:#dc3545; color:white;}
 </style>
 </head>
 
 <body>
 
-<h1>Tennisclub System</h1>
+<div class="container">
 
-<div class="layout">
-
-  <div class="section">
-    <div class="section-title">Mitglieder</div>
-    <input type="text" id="memberSearch" class="member-search" placeholder="Mitglied suchen...">
-    <div class="member-container" id="memberList"></div>
+  <!-- Linke Liste -->
+  <div class="column">
+    <input type="text" id="search" class="search" placeholder="Mitglied suchen...">
+    <div id="memberList" class="list"></div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Zuletzt aktiv</div>
-    <div class="member-container" id="recentMembers"></div>
+  <!-- Rechte Liste -->
+  <div class="column">
+    <div id="recentList" class="list"></div>
   </div>
 
 </div>
 
+<!-- Modal -->
 <div id="modalOverlay">
-  <div id="modal">
-    <h2 id="modalMemberName"></h2>
+  <div class="modal">
+    <h3 id="modalMemberName"></h3>
     <div id="accordionContainer"></div>
-
-    <div class="total" id="orderSummary">
-      Keine Produkte gewählt
-    </div>
-
-    <div>
-      <button class="save-btn" onclick="saveEntry()">Speichern</button>
-      <button class="close-btn" onclick="closeModal()">Abbrechen</button>
+    <div id="orderSummary">Kein Produkt gewählt</div>
+    <div class="modal-buttons">
+      <button onclick="closeModal()">X</button>
+      <button onclick="saveEntry()">Speichern</button>
     </div>
   </div>
 </div>
 
-<!-- NUR SCRIPT TEIL GEÄNDERT – CSS & HTML bleiben gleich -->
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
 const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
@@ -183,47 +160,101 @@ let selectedMember=null;
 let selectedProduct=null;
 let selectedQty=1;
 
+/* ---------- Daten laden ---------- */
+
 async function fetchData(table){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
     headers:{
-      "apikey":SUPABASE_KEY,
-      "Authorization":`Bearer ${SUPABASE_KEY}`
+      apikey:SUPABASE_KEY,
+      Authorization:`Bearer ${SUPABASE_KEY}`
     }
   });
   return await res.json();
 }
 
 async function loadData(){
-  members = await fetchData("mitglieder");
-  products = await fetchData("produkte");
-  entnahmen = await fetchData("entnahmen");
+  members=await fetchData("mitglieder");
+  products=await fetchData("produkte");
+  entnahmen=await fetchData("entnahmen");
   renderMembers();
   renderRecentMembers();
+}
+
+loadData();
+
+/* ---------- Mitglieder ---------- */
+
+function renderMembers(filter=""){
+  const list=document.getElementById("memberList");
+  list.innerHTML="";
+
+  members
+    .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
+    .slice(0,10)
+    .forEach(m=>{
+      const div=document.createElement("div");
+      div.className="member";
+      div.textContent=m.name;
+      div.onclick=()=>openModal(m.id);
+      list.appendChild(div);
+    });
+}
+
+document.getElementById("search").addEventListener("input",e=>{
+  renderMembers(e.target.value);
+});
+
+/* ---------- Letzte Aktive (localStorage) ---------- */
+
+function updateRecent(member){
+  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+  recent=recent.filter(m=>m.id!==member.id);
+  recent.unshift(member);
+  recent=recent.slice(0,10);
+  localStorage.setItem("recentMembers",JSON.stringify(recent));
+  renderRecentMembers();
+}
+
+function renderRecentMembers(){
+  const list=document.getElementById("recentList");
+  list.innerHTML="";
+  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+
+  recent.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member";
+    div.textContent=m.name;
+    div.onclick=()=>openModal(m.id);
+    list.appendChild(div);
+  });
 }
 
 /* ---------- Modal ---------- */
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
-  document.getElementById("modalMemberName").textContent=selectedMember.name;
-  document.getElementById("modalOverlay").style.display="flex";
   selectedProduct=null;
   selectedQty=1;
+  document.getElementById("modalMemberName").textContent=selectedMember.name;
+  document.getElementById("modalOverlay").style.display="flex";
   renderAccordion();
   updateSummary();
 }
 
-/* ---------- TOP 10 aus Entnahmen ---------- */
+function closeModal(){
+  document.getElementById("modalOverlay").style.display="none";
+}
+
+/* ---------- Top 10 ---------- */
 
 function getTopProducts(){
   const count={};
-
   entnahmen.forEach(e=>{
     count[e.produkt_id]=(count[e.produkt_id]||0)+e.menge;
   });
 
   return products
-    .map(p=>({...p, count:count[p.id]||0}))
+    .map(p=>({...p,count:count[p.id]||0}))
     .sort((a,b)=>b.count-a.count)
     .slice(0,10);
 }
@@ -234,13 +265,13 @@ function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
 
-  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
-  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
-  createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
-  createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
+  createAccordion("Top 10 meistgekauft",getTopProducts(),true);
+  createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
+  createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
+  createAccordion("Equipment",products.filter(p=>p.kategorie==="Equipment"));
 }
 
-function createAccordion(title, productList, open=false){
+function createAccordion(title,list,open=false){
   const container=document.getElementById("accordionContainer");
 
   const header=document.createElement("div");
@@ -249,10 +280,9 @@ function createAccordion(title, productList, open=false){
 
   const content=document.createElement("div");
   content.className="accordion-content";
-
   if(open) content.style.display="grid";
 
-  productList.forEach(p=>{
+  list.forEach(p=>{
     const btn=document.createElement("button");
     btn.className="product-btn";
     btn.textContent=p.name+" ("+p.preis+"€)";
@@ -270,7 +300,7 @@ function createAccordion(title, productList, open=false){
   container.appendChild(content);
 }
 
-/* ---------- Produktauswahl (nur eins erlaubt) ---------- */
+/* ---------- Auswahl ---------- */
 
 function selectProduct(p){
   selectedProduct=p;
@@ -279,7 +309,6 @@ function selectProduct(p){
 }
 
 function changeQty(delta){
-  if(!selectedProduct) return;
   selectedQty+=delta;
   if(selectedQty<1) selectedQty=1;
   updateSummary();
@@ -307,7 +336,7 @@ function updateSummary(){
   `;
 }
 
-/* ---------- Speichern (GENAU EINE ENTNAHME) ---------- */
+/* ---------- Speichern ---------- */
 
 async function saveEntry(){
   if(!selectedProduct) return;
@@ -315,8 +344,8 @@ async function saveEntry(){
   await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
     method:"POST",
     headers:{
-      "apikey":SUPABASE_KEY,
-      "Authorization":`Bearer ${SUPABASE_KEY}`,
+      apikey:SUPABASE_KEY,
+      Authorization:`Bearer ${SUPABASE_KEY}`,
       "Content-Type":"application/json"
     },
     body:JSON.stringify({
@@ -329,20 +358,14 @@ async function saveEntry(){
   });
 
   updateRecent(selectedMember);
-  entnahmen = await fetchData("entnahmen");
+  entnahmen=await fetchData("entnahmen");
   closeModal();
-}
-
-function closeModal(){
-  document.getElementById("modalOverlay").style.display="none";
 }
 
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
-
-loadData();
 </script>
-  
+
 </body>
 </html>
