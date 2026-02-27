@@ -66,7 +66,7 @@ body{
 .list{
   background:white;
   border-radius:8px;
-  overflow:auto;
+  overflow:hidden;
 }
 
 .member{
@@ -81,21 +81,21 @@ body{
   background:#f0f0f0;
 }
 
-/* Entnahmen */
-#entnahmenSection{
+/* ---------- ENTNAHMEN ---------- */
+
+.entnahmen-container{
   padding:20px;
 }
 
-#entnahmenList .member{
-  height:auto;
-  line-height:normal;
-  padding:10px;
+#entnahmenList .entry{
+  padding:8px 10px;
+  border-bottom:1px solid #eee;
+  font-size:14px;
   display:flex;
   justify-content:space-between;
-  font-size:14px;
 }
 
-/* Modal */
+/* ---------- Modal ---------- */
 
 #modalOverlay{
   position:fixed;
@@ -115,7 +115,7 @@ body{
   padding:15px;
   display:flex;
   flex-direction:column;
-  overflow:auto;
+  overflow:hidden;
 }
 
 .accordion-header{
@@ -135,7 +135,7 @@ body{
 }
 
 .product-btn{
-  padding:8px;
+  padding:6px;
   font-size:14px;
   border-radius:6px;
   border:1px solid #ccc;
@@ -148,10 +148,9 @@ body{
   border-color:#198754;
 }
 
-.modal-buttons{
-  margin-top:auto;
-  display:flex;
-  justify-content:space-between;
+#orderSummary{
+  margin-top:10px;
+  font-size:14px;
 }
 
 .modal-buttons button:last-child{
@@ -160,6 +159,12 @@ body{
   font-weight:bold;
   border:none;
   padding:10px 16px;
+}
+  
+.modal-buttons{
+  margin-top:auto;
+  display:flex;
+  justify-content:space-between;
 }
 
 button{
@@ -191,14 +196,16 @@ button{
   </div>
 </div>
 
-<!-- Entnahmen -->
-<div id="entnahmenSection">
+<!-- NEU: ENTNAHMEN LISTE -->
+
+<div class="entnahmen-container">
   <div class="section-title">Entnahmen</div>
   <input type="date" id="filterDate" style="padding:8px;margin-bottom:10px;">
   <div id="entnahmenList" class="list"></div>
 </div>
 
-<!-- Modal -->
+<!-- MODAL -->
+
 <div id="modalOverlay">
   <div class="modal">
     <h3 id="modalMemberName"></h3>
@@ -219,45 +226,91 @@ let members=[];
 let products=[];
 let entnahmen=[];
 let selectedMember=null;
-let selectedProduct=null;
+let selectedProducts={};
 
-/* FETCH */
+/* ================= FETCH ================= */
+
 async function fetchData(table){
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
-    headers:{
-      apikey:SUPABASE_KEY,
-      Authorization:`Bearer ${SUPABASE_KEY}`
-    }
-  });
-  return res.ok ? await res.json() : [];
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
+      headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){
+    return [];
+  }
 }
 
 async function loadData(){
-  members = await fetchData("mitglieder");
-  products = await fetchData("produkte");
-  entnahmen = await fetchData("entnahmen");
-
+  members = await fetchData("mitglieder") || [];
+  products = await fetchData("produkte") || [];
+  entnahmen = await fetchData("entnahmen") || [];
   renderRecentMembers();
-  setToday();
+  setTodayFilter();
   renderEntnahmen();
 }
 loadData();
 
-/* DATUM */
-function setToday(){
+/* ================= ENTNAHMEN ================= */
+
+function setTodayFilter(){
   const today=new Date().toISOString().split("T")[0];
   document.getElementById("filterDate").value=today;
 }
+
 document.getElementById("filterDate").addEventListener("change",renderEntnahmen);
 
-/* MITGLIEDER */
+function renderEntnahmen(){
+  const container=document.getElementById("entnahmenList");
+  container.innerHTML="";
+  const selectedDate=document.getElementById("filterDate").value;
+  if(!selectedDate) return;
+
+  const filtered=entnahmen.filter(e=>
+    e.created_at && e.created_at.startsWith(selectedDate)
+  );
+
+  if(filtered.length===0){
+    container.innerHTML="<div style='padding:10px;'>Keine Entnahmen an diesem Tag</div>";
+    return;
+  }
+
+  filtered
+    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
+    .forEach(e=>{
+      const member=members.find(m=>m.id==e.mitglied_id);
+      const product=products.find(p=>p.id==e.produkt_id);
+
+      const div=document.createElement("div");
+      div.className="entry";
+
+      div.innerHTML=`
+        <div>
+          <strong>${member?member.name:"Unbekannt"}</strong><br>
+          ${product?product.name:"Produkt?"} (${e.menge})
+        </div>
+        <div>
+          ${(Number(e.gesamtpreis)||0).toFixed(2)} €
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+}
+
+/* ================= MITGLIEDER ================= */
+
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
   if(!filter.trim()) return;
 
   members
-    .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
+    .filter(m=>m && m.name && m.name.toLowerCase().includes(filter.toLowerCase()))
     .slice(0,10)
     .forEach(m=>{
       const div=document.createElement("div");
@@ -267,11 +320,13 @@ function renderMembers(filter=""){
       list.appendChild(div);
     });
 }
+
 document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
-/* RECENT */
+/* ================= RECENT ================= */
+
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
   recent=recent.filter(m=>m.id!==member.id);
@@ -280,10 +335,12 @@ function updateRecent(member){
   localStorage.setItem("recentMembers",JSON.stringify(recent));
   renderRecentMembers();
 }
+
 function renderRecentMembers(){
   const list=document.getElementById("recentList");
   list.innerHTML="";
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+
   recent.forEach(m=>{
     const div=document.createElement("div");
     div.className="member";
@@ -293,28 +350,38 @@ function renderRecentMembers(){
   });
 }
 
-/* MODAL */
+/* ================= MODAL + REST BLEIBT UNVERÄNDERT ================= */
+
 function openModal(id){
   selectedMember = members.find(m=>m.id==id);
-  selectedProduct=null;
+  if(!selectedMember){ alert("Mitglied nicht gefunden"); return; }
+
+  selectedProducts={};
+
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
+
   renderAccordion();
   updateSummary();
 }
+
 function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
+
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
 
-/* ACCORDION */
+/* ================= ACCORDION ================= */
+
 function getTopProducts(){
   const count={};
   entnahmen.forEach(e=>{
-    count[e.produkt_id]=(count[e.produkt_id]||0)+(e.menge||0);
+    const pid=e.produkt_id;
+    count[pid]=(count[pid]||0)+(e.menge||0);
   });
+
   return products
     .map(p=>({...p,count:count[p.id]||0}))
     .sort((a,b)=>b.count-a.count)
@@ -322,16 +389,17 @@ function getTopProducts(){
 }
 
 function renderAccordion(){
-  const c=document.getElementById("accordionContainer");
-  c.innerHTML="";
-  createAccordion("Top 10 meistgekauft",getTopProducts(),true);
-  createAccordion("Getränke",products.filter(p=>p.kategorie==="Getränke"));
-  createAccordion("Essen",products.filter(p=>p.kategorie==="Essen"));
-  createAccordion("Equipment",products.filter(p=>p.kategorie==="Equipment"));
+  const container=document.getElementById("accordionContainer");
+  container.innerHTML="";
+
+  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
+  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
+  createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
+  createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
 }
 
 function createAccordion(title,list,open=false){
-  const c=document.getElementById("accordionContainer");
+  const container=document.getElementById("accordionContainer");
 
   const header=document.createElement("div");
   header.className="accordion-header";
@@ -341,97 +409,116 @@ function createAccordion(title,list,open=false){
   content.className="accordion-content";
   content.style.display=open?"grid":"none";
 
-  list.forEach(p=>{
+  (list||[]).forEach(p=>{
+    if(!p||!p.id||!p.name) return;
+
     const btn=document.createElement("button");
+    btn.type="button";
     btn.className="product-btn";
-    btn.textContent=`${p.name} (${Number(p.preis).toFixed(2)}€)`;
-    btn.onclick=()=>selectProduct(p);
     btn.id="product-"+p.id;
+    btn.textContent=`${p.name} (${Number(p.preis||0).toFixed(2)}€)`;
+    btn.onclick=()=>selectProduct(p);
     content.appendChild(btn);
   });
 
   header.onclick=()=>{
     document.querySelectorAll(".accordion-content")
-      .forEach(x=>x.style.display="none");
+      .forEach(c=>c.style.display="none");
     content.style.display="grid";
   };
 
-  c.appendChild(header);
-  c.appendChild(content);
+  container.appendChild(header);
+  container.appendChild(content);
 }
 
+/* ================= PRODUKTE ================= */
+
 function selectProduct(p){
-  selectedProduct=p;
-  document.querySelectorAll(".product-btn")
-    .forEach(b=>b.classList.remove("active"));
-  document.getElementById("product-"+p.id).classList.add("active");
+  if(!selectedProducts[p.id]){
+    selectedProducts[p.id]={...p, qty:1, preis:Number(p.preis)||0};
+  }else{
+    selectedProducts[p.id].qty++;
+  }
   updateSummary();
+  updateHighlights();
+}
+
+function changeQty(id,delta){
+  if(!selectedProducts[id]) return;
+  selectedProducts[id].qty+=delta;
+  if(selectedProducts[id].qty<=0){ delete selectedProducts[id]; }
+  updateSummary();
+  updateHighlights();
+}
+
+function updateHighlights(){
+  document.querySelectorAll(".product-btn").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+  Object.keys(selectedProducts).forEach(id=>{
+    const btn=document.getElementById("product-"+id);
+    if(btn) btn.classList.add("active");
+  });
 }
 
 function updateSummary(){
-  const s=document.getElementById("orderSummary");
-  if(!selectedProduct){
-    s.innerHTML="Kein Produkt gewählt";
+  const container=document.getElementById("orderSummary");
+  const items=Object.values(selectedProducts);
+
+  if(items.length===0){
+    container.innerHTML="Kein Produkt gewählt";
     return;
   }
-  s.innerHTML=`<strong>${selectedProduct.name}</strong><br>
-               Preis: ${Number(selectedProduct.preis).toFixed(2)} €`;
+
+  let html="";
+  let total=0;
+
+  items.forEach(p=>{
+    total+=p.qty*p.preis;
+    html+=`
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <div>${p.name}</div>
+        <div>
+          <button onclick="changeQty('${p.id}',-1)">−</button>
+          ${p.qty}
+          <button onclick="changeQty('${p.id}',1)">+</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html+=`<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
+  container.innerHTML=html;
 }
 
-/* SPEICHERN */
-async function saveEntry(){
-  if(!selectedProduct) return;
+/* ================= SPEICHERN ================= */
 
-  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
-    method:"POST",
-    headers:{
-      apikey:SUPABASE_KEY,
-      Authorization:`Bearer ${SUPABASE_KEY}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      mitglied_id:selectedMember.id,
-      produkt_id:selectedProduct.id,
-      menge:1,
-      gesamtpreis:selectedProduct.preis,
-      bezahlt:false
-    })
-  });
+async function saveEntry(){
+  const items=Object.values(selectedProducts);
+  if(items.length===0) return;
+
+  for(const p of items){
+    await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        mitglied_id:selectedMember.id,
+        produkt_id:p.id,
+        menge:p.qty,
+        gesamtpreis:p.qty*p.preis,
+        bezahlt:false
+      })
+    });
+  }
 
   updateRecent(selectedMember);
   entnahmen = await fetchData("entnahmen");
-  renderEntnahmen();
+  renderEntnahmen();   // ← wichtig
   closeModal();
-}
-
-/* ENTNAHMEN ANZEIGE */
-function renderEntnahmen(){
-  const list=document.getElementById("entnahmenList");
-  list.innerHTML="";
-  const date=document.getElementById("filterDate").value;
-  const filtered=entnahmen.filter(e=>e.created_at?.startsWith(date));
-
-  if(filtered.length===0){
-    list.innerHTML="<div class='member'>Keine Entnahmen</div>";
-    return;
-  }
-
-  filtered
-    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
-    .forEach(e=>{
-      const m=members.find(x=>x.id==e.mitglied_id);
-      const p=products.find(x=>x.id==e.produkt_id);
-      const div=document.createElement("div");
-      div.className="member";
-      div.innerHTML=`
-        <div>
-          <strong>${m?.name||""}</strong><br>
-          ${p?.name||""}
-        </div>
-        <div>${Number(e.gesamtpreis).toFixed(2)} €</div>
-      `;
-      list.appendChild(div);
-    });
 }
 </script>
 
