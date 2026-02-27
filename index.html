@@ -13,11 +13,13 @@ h1{text-align:center;}
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:15px;
+  height:420px;   /* Beide Seiten exakt gleich hoch */
 }
 
 .section{
   display:flex;
   flex-direction:column;
+  height:100%;
 }
 
 .section-title{
@@ -28,16 +30,17 @@ h1{text-align:center;}
 .member-search{
   width:100%;
   padding:8px;
-  margin-bottom:6px;
   border-radius:6px;
   border:1px solid #ccc;
+  margin-bottom:6px;
+  box-sizing:border-box;
 }
 
 .member-container{
+  flex:1;
   background:white;
   border-radius:6px;
   padding:5px;
-  height:350px;              /* <-- gleiche feste Höhe */
   overflow-y:auto;
   box-shadow:0 2px 5px rgba(0,0,0,0.05);
 }
@@ -98,16 +101,26 @@ h1{text-align:center;}
   cursor:pointer;
 }
 
-.product-btn:hover{
-  background:#0056b3;
+.product-btn:hover{ background:#0056b3; }
+
+.order-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+
+.qty-btn{
+  padding:2px 8px;
+  margin:0 4px;
 }
 
 .total{
-  margin-top:12px;
+  margin-top:10px;
   padding:10px;
   background:#f8f9fa;
   border-radius:6px;
-  font-size:15px;
+  font-size:14px;
 }
 
 .save-btn, .close-btn{
@@ -238,7 +251,7 @@ function openModal(id){
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
-  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
+  createAccordion("Top 10 meistgekauft", products.slice(0,10), true);
   createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
   createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
   createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
@@ -246,7 +259,6 @@ function renderAccordion(){
 
 function createAccordion(title, productList, open=false){
   const container=document.getElementById("accordionContainer");
-
   const header=document.createElement("div");
   header.className="accordion-header";
   header.textContent=title;
@@ -271,61 +283,62 @@ function createAccordion(title, productList, open=false){
   container.appendChild(content);
 }
 
-function getTopProducts(){
-  const countMap={};
-  entnahmen.forEach(e=>{
-    countMap[e.produkt_id]=(countMap[e.produkt_id]||0)+e.menge;
-  });
-
-  return products
-    .map(p=>({ ...p, count: countMap[p.id]||0 }))
-    .sort((a,b)=>b.count-a.count)
-    .slice(0,10);
-}
-
 function addProduct(p){
-  if(!order[p.id]){
-    order[p.id]={...p, menge:0};
-  }
+  if(!order[p.id]) order[p.id]={...p, menge:0};
   order[p.id].menge++;
   updateSummary();
 }
 
+function changeQty(id, delta){
+  order[id].menge+=delta;
+  if(order[id].menge<=0) delete order[id];
+  updateSummary();
+}
+
 function updateSummary(){
-  let text="";
+  let html="";
   let total=0;
 
   Object.values(order).forEach(item=>{
-    text+=`${item.menge}x ${item.name}<br>`;
     total+=item.menge*item.preis;
+    html+=`
+      <div class="order-item">
+        <div>${item.name}</div>
+        <div>
+          <button class="qty-btn" onclick="changeQty(${item.id},-1)">-</button>
+          ${item.menge}
+          <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+        </div>
+      </div>
+    `;
   });
 
-  if(text==="") text="Keine Produkte gewählt";
+  if(html==="") html="Keine Produkte gewählt";
 
   document.getElementById("orderSummary").innerHTML=
-    text + `<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
+    html + `<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
 }
 
 async function saveEntry(){
   if(Object.keys(order).length===0) return;
 
-  for(const item of Object.values(order)){
-    await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
-      method:"POST",
-      headers:{
-        "apikey":SUPABASE_KEY,
-        "Authorization":`Bearer ${SUPABASE_KEY}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify([{
-        mitglied_id:selectedMember.id,
-        produkt_id:item.id,
-        menge:item.menge,
-        gesamtpreis:item.menge*item.preis,
-        bezahlt:false
-      }])
-    });
-  }
+  const entries = Object.values(order).map(item=>({
+    mitglied_id:selectedMember.id,
+    produkt_id:item.id,
+    menge:item.menge,
+    gesamtpreis:item.menge*item.preis,
+    bezahlt:false
+  }));
+
+  await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
+    method:"POST",
+    headers:{
+      "apikey":SUPABASE_KEY,
+      "Authorization":`Bearer ${SUPABASE_KEY}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify(entries)
+  });
 
   updateRecent(selectedMember);
   closeModal();
