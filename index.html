@@ -14,6 +14,22 @@ body{
   background:#f4f6f8;
 }
 
+/* NEU: Seitenüberschrift */
+.page-title{
+  text-align:center;
+  font-size:26px;
+  font-weight:bold;
+  padding:20px 0 10px 0;
+}
+
+/* NEU: kleine Spaltenüberschrift */
+.section-title{
+  font-size:14px;
+  font-weight:bold;
+  margin-bottom:6px;
+  margin-left:2px;
+}
+
 .container{
   display:flex;
   gap:20px;
@@ -150,16 +166,23 @@ button{
 
 <body>
 
+<!-- NEU: Hauptüberschrift -->
+<div class="page-title">
+  Entnahme Kühlschrank TC Hopfgarten
+</div>
+
 <div class="container">
 
   <!-- Linke Liste -->
   <div class="column">
+    <div class="section-title">Suche</div>
     <input type="text" id="search" class="search" placeholder="Mitglied suchen...">
     <div id="memberList" class="list"></div>
   </div>
 
   <!-- Rechte Liste -->
   <div class="column">
+    <div class="section-title">Letzte aktive Mitglieder</div>
     <div id="recentList" class="list"></div>
   </div>
 
