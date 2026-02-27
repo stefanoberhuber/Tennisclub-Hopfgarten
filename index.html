@@ -194,8 +194,6 @@ let members=[], products=[], entnahmen=[];
 let selectedMember=null;
 let selectedProducts={};
 
-/* ---------- Daten laden ---------- */
-
 async function fetchData(table){
   const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
     headers:{
@@ -214,7 +212,7 @@ async function loadData(){
 }
 loadData();
 
-/* ---------- Mitglieder ---------- */
+/* Mitglieder */
 
 function renderMembers(filter=""){
   const list=document.getElementById("memberList");
@@ -260,7 +258,7 @@ function renderRecentMembers(){
   });
 }
 
-/* ---------- Modal ---------- */
+/* Modal */
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
@@ -277,7 +275,7 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-/* ---------- Accordion ---------- */
+/* Accordion */
 
 function getTopProducts(){
   const count={};
@@ -331,7 +329,7 @@ function createAccordion(title,list,open=false){
   container.appendChild(content);
 }
 
-/* ---------- Produktlogik ---------- */
+/* Produktlogik */
 
 function selectProduct(p){
   if(!selectedProducts[p.id]){
@@ -381,9 +379,9 @@ function updateSummary(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div>${p.name}</div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <button type="button" class="qty-btn" data-id="${p.id}" data-delta="-1">−</button>
+          <button type="button" onclick="changeQty(${p.id}, -1)">−</button>
           <span>${p.qty}</span>
-          <button type="button" class="qty-btn" data-id="${p.id}" data-delta="1">+</button>
+          <button type="button" onclick="changeQty(${p.id}, 1)">+</button>
         </div>
       </div>
     `;
@@ -393,25 +391,7 @@ function updateSummary(){
   container.innerHTML=html;
 }
 
-// ROBUSTER Event-Handler für + / − Buttons
-document.getElementById("orderSummary").addEventListener("click", function(e){
-
-  let target = e.target;
-
-  // Falls auf das Zeichen selbst geklickt wurde (Textnode Problem iOS)
-  if (target.nodeType === 3) {
-    target = target.parentNode;
-  }
-
-  if (!target.classList.contains("qty-btn")) return;
-
-  const id = parseInt(target.getAttribute("data-id"));
-  const delta = parseInt(target.getAttribute("data-delta"));
-
-  changeQty(id, delta);
-});
-
-/* ---------- Speichern ---------- */
+/* Speichern */
 
 async function saveEntry(){
   const items=Object.values(selectedProducts);
