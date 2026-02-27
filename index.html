@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Vereinskühlschrank</title>
+<title>Tennisclub System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body { font-family: Arial; margin:10px; background:#f4f6f9;}
-h1{text-align:center; font-size:26px;}
+h1{text-align:center;}
 
 .layout{
   display:grid;
@@ -18,7 +18,6 @@ h1{text-align:center; font-size:26px;}
 .section-title{
   font-weight:bold;
   margin-bottom:6px;
-  font-size:18px;
 }
 
 .member-container{
@@ -45,6 +44,7 @@ h1{text-align:center; font-size:26px;}
   background:rgba(0,0,0,0.5);
   justify-content:center;
   align-items:center;
+  z-index:1000;
 }
 
 #modal{
@@ -55,6 +55,7 @@ h1{text-align:center; font-size:26px;}
   overflow-y:auto;
   border-radius:10px;
   padding:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
 
 .accordion-header{
@@ -84,7 +85,6 @@ h1{text-align:center; font-size:26px;}
   cursor:pointer;
 }
 
-.product-btn:hover{opacity:0.9;}
 .selected-product{background:#28a745!important;}
 
 .quantity-box{
@@ -107,6 +107,7 @@ h1{text-align:center; font-size:26px;}
   text-align:center;
   margin-top:10px;
   font-size:18px;
+  font-weight:bold;
 }
 
 .save-btn, .close-btn{
@@ -126,7 +127,7 @@ h1{text-align:center; font-size:26px;}
 
 <body>
 
-<h1>Vereinskühlschrank</h1>
+<h1>Tennisclub System</h1>
 
 <div class="layout">
   <div>
@@ -142,7 +143,6 @@ h1{text-align:center; font-size:26px;}
 <div id="modalOverlay">
   <div id="modal">
     <h2 id="modalMemberName"></h2>
-
     <div id="accordionContainer"></div>
 
     <div class="quantity-box">
@@ -162,23 +162,28 @@ h1{text-align:center; font-size:26px;}
 
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
-const SUPABASE_KEY="DEIN_KEY";
+const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[], products=[], entnahmen=[];
 let selectedMember=null, selectedProduct=null;
 let quantity=1;
 
+async function fetchData(table){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
+    headers:{
+      "apikey":SUPABASE_KEY,
+      "Authorization":`Bearer ${SUPABASE_KEY}`
+    }
+  });
+  return await res.json();
+}
+
 async function loadData(){
-  const m = await fetch(`${SUPABASE_URL}/rest/v1/mitglieder?select=*&apikey=${SUPABASE_KEY}`);
-  members = await m.json();
-
-  const p = await fetch(`${SUPABASE_URL}/rest/v1/produkte?select=*&apikey=${SUPABASE_KEY}`);
-  products = await p.json();
-
-  const e = await fetch(`${SUPABASE_URL}/rest/v1/entnahmen?select=*&apikey=${SUPABASE_KEY}`);
-  entnahmen = await e.json();
-
+  members = await fetchData("mitglieder");
+  products = await fetchData("produkte");
+  entnahmen = await fetchData("entnahmen");
   renderMembers();
+  renderRecentMembers();
 }
 
 function renderMembers(){
@@ -193,31 +198,49 @@ function renderMembers(){
   });
 }
 
+function renderRecentMembers(){
+  const container=document.getElementById("recentMembers");
+  container.innerHTML="";
+  const recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+  recent.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="member-item";
+    div.textContent=m.name;
+    div.onclick=()=>openModal(m.id);
+    container.appendChild(div);
+  });
+}
+
+function updateRecent(member){
+  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
+  recent=recent.filter(m=>m.id!==member.id);
+  recent.unshift(member);
+  if(recent.length>10) recent=recent.slice(0,10);
+  localStorage.setItem("recentMembers",JSON.stringify(recent));
+  renderRecentMembers();
+}
+
 function openModal(id){
-  selectedMember = members.find(m=>m.id==id);
+  selectedMember=members.find(m=>m.id==id);
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
   quantity=1;
+  document.getElementById("quantity").textContent=1;
   renderAccordion();
   updateTotal();
-}
-
-function closeModal(){
-  document.getElementById("modalOverlay").style.display="none";
-  selectedProduct=null;
 }
 
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
 
-  createAccordion("Top 10 meistgekauft", getTopProducts());
+  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
   createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
   createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
   createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
 }
 
-function createAccordion(title, productList){
+function createAccordion(title, productList, open=false){
   const container=document.getElementById("accordionContainer");
 
   const header=document.createElement("div");
@@ -226,6 +249,7 @@ function createAccordion(title, productList){
 
   const content=document.createElement("div");
   content.className="accordion-content";
+  if(open) content.style.display="block";
 
   productList.forEach(p=>{
     const btn=document.createElement("button");
@@ -257,7 +281,8 @@ function getTopProducts(){
 
 function selectProduct(p,btn){
   selectedProduct=p;
-  document.querySelectorAll(".product-btn").forEach(b=>b.classList.remove("selected-product"));
+  document.querySelectorAll(".product-btn")
+    .forEach(b=>b.classList.remove("selected-product"));
   btn.classList.add("selected-product");
   updateTotal();
 }
@@ -284,11 +309,11 @@ async function saveEntry(){
   await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
     method:"POST",
     headers:{
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "apikey":SUPABASE_KEY,
+      "Authorization":`Bearer ${SUPABASE_KEY}`,
       "Content-Type":"application/json"
     },
-    body: JSON.stringify([{
+    body:JSON.stringify([{
       mitglied_id:selectedMember.id,
       produkt_id:selectedProduct.id,
       menge:quantity,
@@ -297,10 +322,17 @@ async function saveEntry(){
     }])
   });
 
+  updateRecent(selectedMember);
   closeModal();
+  entnahmen = await fetchData("entnahmen");
 }
 
-document.addEventListener("keydown",(e)=>{
+function closeModal(){
+  document.getElementById("modalOverlay").style.display="none";
+  selectedProduct=null;
+}
+
+document.addEventListener("keydown",e=>{
   if(e.key==="Escape") closeModal();
 });
 
