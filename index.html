@@ -137,7 +137,6 @@ body{
   transition:0.2s;
 }
 
-/* NEU: Highlight */
 .product-btn.active{
   background:#198754;
   color:white;
@@ -248,7 +247,7 @@ document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
-/* ---------- Rest unverändert ---------- */
+/* ---------- Recent ---------- */
 
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
@@ -375,6 +374,8 @@ function updateProductHighlights(){
   });
 }
 
+/* ✅ FIXED SUMMARY (Event Delegation kompatibel) */
+
 function updateSummary(){
   const container=document.getElementById("orderSummary");
   const items=Object.values(selectedProducts);
@@ -393,9 +394,9 @@ function updateSummary(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div>${p.name}</div>
         <div>
-          <button onclick="changeQty(${p.id},-1)">-</button>
-          ${p.qty}
-          <button onclick="changeQty(${p.id},1)">+</button>
+          <button class="qty-btn" data-id="${p.id}" data-delta="-1">-</button>
+          <span style="margin:0 6px;">${p.qty}</span>
+          <button class="qty-btn" data-id="${p.id}" data-delta="1">+</button>
         </div>
       </div>
     `;
@@ -404,6 +405,15 @@ function updateSummary(){
   html+=`<hr><strong>Gesamt: ${total.toFixed(2)} €</strong>`;
   container.innerHTML=html;
 }
+
+/* ✅ Event Delegation */
+document.getElementById("orderSummary").addEventListener("click",function(e){
+  if(e.target.classList.contains("qty-btn")){
+    const id=parseInt(e.target.dataset.id);
+    const delta=parseInt(e.target.dataset.delta);
+    changeQty(id,delta);
+  }
+});
 
 /* ---------- Speichern ---------- */
 
