@@ -226,7 +226,7 @@ function renderMembers(filter=""){
       const div=document.createElement("div");
       div.className="member";
       div.textContent=m.name;
-      div.onclick=()=>openModal(m.id);
+      div.onclick=()=>openModal(Number(m.id));
       list.appendChild(div);
     });
 }
@@ -237,7 +237,7 @@ document.getElementById("search").addEventListener("input",e=>{
 
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-  recent=recent.filter(m=>m.id!==member.id);
+  recent=recent.filter(m=>Number(m.id)!==Number(member.id));
   recent.unshift(member);
   recent=recent.slice(0,10);
   localStorage.setItem("recentMembers",JSON.stringify(recent));
@@ -253,7 +253,7 @@ function renderRecentMembers(){
     const div=document.createElement("div");
     div.className="member";
     div.textContent=m.name;
-    div.onclick=()=>openModal(m.id);
+    div.onclick=()=>openModal(Number(m.id));
     list.appendChild(div);
   });
 }
@@ -261,7 +261,8 @@ function renderRecentMembers(){
 /* Modal */
 
 function openModal(id){
-  selectedMember=members.find(m=>m.id==id);
+  id = Number(id);
+  selectedMember=members.find(m=>Number(m.id)===id);
   if(!selectedMember) return;
 
   selectedProducts={};
@@ -280,11 +281,16 @@ function closeModal(){
 function getTopProducts(){
   const count={};
   entnahmen.forEach(e=>{
-    count[e.produkt_id]=(count[e.produkt_id]||0)+e.menge;
+    const pid = Number(e.produkt_id);
+    count[pid]=(count[pid]||0)+Number(e.menge);
   });
 
   return products
-    .map(p=>({...p,count:count[p.id]||0}))
+    .map(p=>({
+      ...p,
+      id:Number(p.id),
+      count:count[Number(p.id)]||0
+    }))
     .sort((a,b)=>b.count-a.count)
     .slice(0,10);
 }
@@ -310,10 +316,12 @@ function createAccordion(title,list,open=false){
   if(open) content.style.display="grid";
 
   list.forEach(p=>{
+    const id = Number(p.id);
+
     const btn=document.createElement("button");
     btn.type="button";
     btn.className="product-btn";
-    btn.id="product-"+p.id;
+    btn.id="product-"+id;
     btn.textContent=p.name+" ("+p.preis+"€)";
     btn.onclick=()=>selectProduct(p);
     content.appendChild(btn);
@@ -332,21 +340,33 @@ function createAccordion(title,list,open=false){
 /* Produktlogik */
 
 function selectProduct(p){
-  if(!selectedProducts[p.id]){
-    selectedProducts[p.id]={...p, qty:1};
+  const id = Number(p.id);
+
+  if(!selectedProducts[id]){
+    selectedProducts[id]={
+      ...p,
+      id:id,
+      qty:1
+    };
   }else{
-    selectedProducts[p.id].qty++;
+    selectedProducts[id].qty++;
   }
+
   updateSummary();
   updateProductHighlights();
 }
 
 function changeQty(id,delta){
+  id = Number(id);
+
   if(!selectedProducts[id]) return;
+
   selectedProducts[id].qty+=delta;
+
   if(selectedProducts[id].qty<=0){
     delete selectedProducts[id];
   }
+
   updateSummary();
   updateProductHighlights();
 }
@@ -355,6 +375,7 @@ function updateProductHighlights(){
   document.querySelectorAll(".product-btn").forEach(btn=>{
     btn.classList.remove("active");
   });
+
   Object.keys(selectedProducts).forEach(id=>{
     const btn=document.getElementById("product-"+id);
     if(btn) btn.classList.add("active");
@@ -374,7 +395,8 @@ function updateSummary(){
   let total=0;
 
   items.forEach(p=>{
-    total+=p.qty*p.preis;
+    total+=p.qty*Number(p.preis);
+
     html+=`
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div>${p.name}</div>
@@ -406,10 +428,10 @@ async function saveEntry(){
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        mitglied_id:selectedMember.id,
-        produkt_id:p.id,
-        menge:p.qty,
-        gesamtpreis:p.qty*p.preis,
+        mitglied_id:Number(selectedMember.id),
+        produkt_id:Number(p.id),
+        menge:Number(p.qty),
+        gesamtpreis:Number(p.qty)*Number(p.preis),
         bezahlt:false
       })
     });
