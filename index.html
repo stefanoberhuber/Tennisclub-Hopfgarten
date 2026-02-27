@@ -196,7 +196,7 @@ let entnahmen=[];
 let selectedMember=null;
 let selectedProducts={};
 
-/* ================= SAFE FETCH ================= */
+/* ================= FETCH ================= */
 
 async function fetchData(table){
   try{
@@ -244,31 +244,6 @@ document.getElementById("search").addEventListener("input",e=>{
   renderMembers(e.target.value);
 });
 
-/* ================= RECENT ================= */
-
-function updateRecent(member){
-  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-  recent=recent.filter(m=>m.id!==member.id);
-  recent.unshift(member);
-  recent=recent.slice(0,10);
-  localStorage.setItem("recentMembers",JSON.stringify(recent));
-  renderRecentMembers();
-}
-
-function renderRecentMembers(){
-  const list=document.getElementById("recentList");
-  list.innerHTML="";
-  let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
-
-  recent.forEach(m=>{
-    const div=document.createElement("div");
-    div.className="member";
-    div.textContent=m.name;
-    div.onclick=()=>openModal(m.id);
-    list.appendChild(div);
-  });
-}
-
 /* ================= MODAL ================= */
 
 function openModal(id){
@@ -287,17 +262,30 @@ function openModal(id){
   updateSummary();
 }
 
-function closeModal(){
-  document.getElementById("modalOverlay").style.display="none";
-}
-
 /* ================= ACCORDION ================= */
+
+function getTopProducts(){
+  const count={};
+
+  entnahmen.forEach(e=>{
+    const pid=e.produkt_id;
+    count[pid]=(count[pid]||0)+(e.menge||0);
+  });
+
+  return products
+    .map(p=>({...p,count:count[p.id]||0}))
+    .sort((a,b)=>b.count-a.count)
+    .slice(0,10);
+}
 
 function renderAccordion(){
   const container=document.getElementById("accordionContainer");
   container.innerHTML="";
 
-  createAccordion("Produkte", products, true);
+  createAccordion("Top 10 meistgekauft", getTopProducts(), true);
+  createAccordion("Getränke", products.filter(p=>p.kategorie==="Getränke"));
+  createAccordion("Essen", products.filter(p=>p.kategorie==="Essen"));
+  createAccordion("Equipment", products.filter(p=>p.kategorie==="Equipment"));
 }
 
 function createAccordion(title,list,open=false){
@@ -313,7 +301,6 @@ function createAccordion(title,list,open=false){
   content.style.display = open ? "grid" : "none";
 
   (list || []).forEach(p=>{
-
     if(!p || !p.id || !p.name) return;
 
     const btn=document.createElement("button");
@@ -326,6 +313,12 @@ function createAccordion(title,list,open=false){
     content.appendChild(btn);
   });
 
+  header.onclick=()=>{
+    document.querySelectorAll(".accordion-content")
+      .forEach(c=>c.style.display="none");
+    content.style.display="grid";
+  };
+
   container.appendChild(header);
   container.appendChild(content);
 }
@@ -333,21 +326,39 @@ function createAccordion(title,list,open=false){
 /* ================= PRODUKTE ================= */
 
 function selectProduct(p){
+
   if(!selectedProducts[p.id]){
     selectedProducts[p.id]={...p, qty:1, preis:Number(p.preis)||0};
   }else{
     selectedProducts[p.id].qty++;
   }
+
   updateSummary();
+  updateHighlights();
 }
 
 function changeQty(id,delta){
   if(!selectedProducts[id]) return;
+
   selectedProducts[id].qty+=delta;
+
   if(selectedProducts[id].qty<=0){
     delete selectedProducts[id];
   }
+
   updateSummary();
+  updateHighlights();
+}
+
+function updateHighlights(){
+  document.querySelectorAll(".product-btn").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  Object.keys(selectedProducts).forEach(id=>{
+    const btn=document.getElementById("product-"+id);
+    if(btn) btn.classList.add("active");
+  });
 }
 
 function updateSummary(){
@@ -364,6 +375,7 @@ function updateSummary(){
 
   items.forEach(p=>{
     total+=p.qty*p.preis;
+
     html+=`
       <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
         <div>${p.name}</div>
@@ -404,7 +416,6 @@ async function saveEntry(){
     });
   }
 
-  updateRecent(selectedMember);
   closeModal();
 }
 
