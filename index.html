@@ -393,12 +393,22 @@ function updateSummary(){
   container.innerHTML=html;
 }
 
-document.getElementById("orderSummary").addEventListener("click",function(e){
-  const btn=e.target.closest(".qty-btn");
-  if(!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  changeQty(parseInt(btn.dataset.id),parseInt(btn.dataset.delta));
+// ROBUSTER Event-Handler für + / − Buttons
+document.getElementById("orderSummary").addEventListener("click", function(e){
+
+  let target = e.target;
+
+  // Falls auf das Zeichen selbst geklickt wurde (Textnode Problem iOS)
+  if (target.nodeType === 3) {
+    target = target.parentNode;
+  }
+
+  if (!target.classList.contains("qty-btn")) return;
+
+  const id = parseInt(target.getAttribute("data-id"));
+  const delta = parseInt(target.getAttribute("data-delta"));
+
+  changeQty(id, delta);
 });
 
 /* ---------- Speichern ---------- */
