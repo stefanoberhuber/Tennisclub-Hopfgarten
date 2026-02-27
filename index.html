@@ -18,40 +18,67 @@ body{
   display:flex;
   gap:20px;
   padding:20px;
-  height:90vh;
+}
+
+/* ---------- Fixe Höhe für exakt 10 Mitglieder ---------- */
+
+:root{
+  --member-height: 42px;
+  --visible-members: 10;
+  --search-height: 52px;
 }
 
 .column{
-  width:50%; /* FIX: beide exakt gleich breit */
+  width:50%;
   display:flex;
   flex-direction:column;
 }
 
+/* Suchfeld */
 .search{
+  height:var(--search-height);
   padding:10px;
   margin-bottom:10px;
   font-size:16px;
+  box-sizing:border-box;
+}
+
+/* Rechte Liste exakt 10 Mitglieder */
+#recentList{
+  height: calc(var(--member-height) * var(--visible-members));
+}
+
+/* Linke Liste + Suchfeld exakt gleiche Gesamthöhe */
+#memberList{
+  height: calc(
+    (var(--member-height) * var(--visible-members))
+    - var(--search-height)
+    - 10px
+  );
 }
 
 .list{
-  flex:1;
-  overflow:hidden;
   background:white;
   border-radius:8px;
-  padding:10px;
+  padding:0;
+  overflow:hidden;
 }
 
+/* Mitglied exakt definierte Höhe */
 .member{
-  padding:8px;
+  height:var(--member-height);
+  line-height:var(--member-height);
+  padding:0 10px;
   border-bottom:1px solid #eee;
   cursor:pointer;
+  box-sizing:border-box;
 }
 
 .member:hover{
   background:#f0f0f0;
 }
 
-/* Modal */
+/* ---------- Modal ---------- */
 
 #modalOverlay{
   position:fixed;
@@ -187,7 +214,7 @@ function renderMembers(filter=""){
   const list=document.getElementById("memberList");
   list.innerHTML="";
 
-  if(!filter.trim()) return; // FIX: leer lassen bis Suche
+  if(!filter.trim()) return;
 
   members
     .filter(m=>m.name.toLowerCase().includes(filter.toLowerCase()))
@@ -206,6 +233,7 @@ document.getElementById("search").addEventListener("input",e=>{
 });
 
 /* ---------- Rest unverändert ---------- */
+
 function updateRecent(member){
   let recent=JSON.parse(localStorage.getItem("recentMembers")||"[]");
   recent=recent.filter(m=>m.id!==member.id);
