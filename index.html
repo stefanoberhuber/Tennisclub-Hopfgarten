@@ -14,7 +14,6 @@ body{
   background:#f4f6f8;
 }
 
-/* NEU: Seitenüberschrift */
 .page-title{
   text-align:center;
   font-size:26px;
@@ -22,7 +21,6 @@ body{
   padding:20px 0 10px 0;
 }
 
-/* NEU: kleine Spaltenüberschrift */
 .section-title{
   font-size:14px;
   font-weight:bold;
@@ -36,8 +34,6 @@ body{
   padding:20px;
 }
 
-/* ---------- Fixe Höhe für exakt 10 Mitglieder ---------- */
-
 :root{
   --member-height: 42px;
   --visible-members: 10;
@@ -50,7 +46,6 @@ body{
   flex-direction:column;
 }
 
-/* Suchfeld */
 .search{
   height:var(--search-height);
   padding:10px;
@@ -59,12 +54,10 @@ body{
   box-sizing:border-box;
 }
 
-/* Rechte Liste exakt 10 Mitglieder */
 #recentList{
   height: calc(var(--member-height) * var(--visible-members));
 }
 
-/* Linke Liste + Suchfeld exakt gleiche Gesamthöhe */
 #memberList{
   height: calc(
     (var(--member-height) * var(--visible-members))
@@ -80,7 +73,6 @@ body{
   overflow:hidden;
 }
 
-/* Mitglied exakt definierte Höhe */
 .member{
   height:var(--member-height);
   line-height:var(--member-height);
@@ -142,6 +134,14 @@ body{
   border-radius:6px;
   border:1px solid #ccc;
   cursor:pointer;
+  transition:0.2s;
+}
+
+/* NEU: Highlight */
+.product-btn.active{
+  background:#198754;
+  color:white;
+  border-color:#198754;
 }
 
 #orderSummary{
@@ -156,9 +156,10 @@ body{
 }
 
 button{
-  padding:8px 12px;
+  padding:6px 10px;
   border-radius:6px;
-  border:none;
+  border:1px solid #ccc;
+  background:white;
   cursor:pointer;
 }
 </style>
@@ -166,29 +167,23 @@ button{
 
 <body>
 
-<!-- NEU: Hauptüberschrift -->
 <div class="page-title">
   Entnahme Kühlschrank TC Hopfgarten
 </div>
 
 <div class="container">
-
-  <!-- Linke Liste -->
   <div class="column">
     <div class="section-title">Suche</div>
     <input type="text" id="search" class="search" placeholder="Mitglied suchen...">
     <div id="memberList" class="list"></div>
   </div>
 
-  <!-- Rechte Liste -->
   <div class="column">
     <div class="section-title">Letzte aktive Mitglieder</div>
     <div id="recentList" class="list"></div>
   </div>
-
 </div>
 
-<!-- Modal -->
 <div id="modalOverlay">
   <div class="modal">
     <h3 id="modalMemberName"></h3>
@@ -207,7 +202,7 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[], products=[], entnahmen=[];
 let selectedMember=null;
-let selectedProducts={};   // ← neu für mehrere Produkte
+let selectedProducts={};
 
 /* ---------- Daten laden ---------- */
 
@@ -280,7 +275,7 @@ function renderRecentMembers(){
 
 function openModal(id){
   selectedMember=members.find(m=>m.id==id);
-  selectedProducts={};   // Reset
+  selectedProducts={};
   document.getElementById("modalMemberName").textContent=selectedMember.name;
   document.getElementById("modalOverlay").style.display="flex";
   renderAccordion();
@@ -328,6 +323,7 @@ function createAccordion(title,list,open=false){
   list.forEach(p=>{
     const btn=document.createElement("button");
     btn.className="product-btn";
+    btn.id="product-"+p.id;
     btn.textContent=p.name+" ("+p.preis+"€)";
     btn.onclick=()=>selectProduct(p);
     content.appendChild(btn);
@@ -343,7 +339,7 @@ function createAccordion(title,list,open=false){
   container.appendChild(content);
 }
 
-/* ---------- PRODUKTLOGIK (NEU) ---------- */
+/* ---------- PRODUKTLOGIK ---------- */
 
 function selectProduct(p){
   if(!selectedProducts[p.id]){
@@ -352,14 +348,31 @@ function selectProduct(p){
     selectedProducts[p.id].qty++;
   }
   updateSummary();
+  updateProductHighlights();
 }
 
 function changeQty(id,delta){
+  if(!selectedProducts[id]) return;
+
   selectedProducts[id].qty+=delta;
+
   if(selectedProducts[id].qty<=0){
     delete selectedProducts[id];
   }
+
   updateSummary();
+  updateProductHighlights();
+}
+
+function updateProductHighlights(){
+  document.querySelectorAll(".product-btn").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  Object.keys(selectedProducts).forEach(id=>{
+    const btn=document.getElementById("product-"+id);
+    if(btn) btn.classList.add("active");
+  });
 }
 
 function updateSummary(){
