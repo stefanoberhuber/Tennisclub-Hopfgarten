@@ -135,7 +135,7 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[],products=[],entnahmen=[];
 let selectedMember=null,selectedProducts={};
-let currentSortColumn="created_at",currentSortDesc=true,columnFilters={};
+let currentSortColumn="zeitpunkt",currentSortDesc=true,columnFilters={};
 
 /* FETCH */
 async function fetchData(table){
@@ -369,7 +369,7 @@ function renderEntnahmenTable(){
   products.forEach(p=>productMap[p.id]=p.name);
 
   const columns=[
-    {key:"created_at",label:"Datum"},
+    {key:"zeitpunkt",label:"Datum"},
     {key:"mitglied_id",label:"Mitglied"},
     {key:"produkt_id",label:"Produkt"},
     {key:"menge",label:"Menge"},
@@ -432,9 +432,9 @@ function renderEntnahmenTable(){
   let filtered=entnahmen.filter(r=>{
 
     // Datum exakt filtern
-if(columnFilters["created_at"]){
-  const rowDate = (r.created_at || "").split(" ")[0]; // 2026-02-28
-  if(rowDate !== columnFilters["created_at"]) return false;
+if(columnFilters["zeitpunkt"]){
+  const rowDate = (r.zeitpunkt || "").split(" ")[0]; // 2026-02-28
+  if(rowDate !== columnFilters["zeitpunkt"]) return false;
 }
 
     // Mitglied filtern
@@ -452,7 +452,7 @@ if(columnFilters["created_at"]){
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
 
-if(currentSortColumn==="created_at"){
+if(currentSortColumn==="zeitpunkt"){
   A = (A || "").split(" ")[0];
   B = (B || "").split(" ")[0];
 }
@@ -471,7 +471,7 @@ if(currentSortColumn==="created_at"){
 
       if(col.key==="mitglied_id") value=memberMap[value]||"-";
       if(col.key==="produkt_id") value=productMap[value]||"-";
-      if(col.key==="created_at") value=formatDate(value);
+      if(col.key==="zeitpunkt") value=formatDate(value);
       if(col.key==="gesamtpreis") value=Number(value||0).toFixed(2)+" €";
 
       td.textContent=value;
