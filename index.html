@@ -339,11 +339,13 @@ async function saveEntry(){
 /* Tabelle */
 
 function formatDate(dateStr){
-  if(!dateStr) return "-";
+  if(!dateStr) return "";
 
-  const d = new Date(dateStr);
+  // Safari Fix für ISO Strings mit Millisekunden
+  const clean = dateStr.replace("Z", "");
+  const d = new Date(clean);
 
-  if (isNaN(d.getTime())) return "-";
+  if (isNaN(d.getTime())) return "";
 
   return d.toLocaleString("de-DE", {
     day: "2-digit",
@@ -412,7 +414,7 @@ function renderEntnahmenTable(){
     }
 
     // Nur Namen Textsuche
-    else if(col.key==="mitglied_id" || col.key==="produkt_id"){
+    else if(col.key==="mitglied_id"){
       const input=document.createElement("input");
       input.placeholder="Suchen...";
       input.value=columnFilters[col.key]||"";
@@ -448,11 +450,6 @@ function renderEntnahmenTable(){
       if(!name.includes(columnFilters["mitglied_id"])) return false;
     }
 
-    // Produkt filtern
-    if(columnFilters["produkt_id"]){
-      const name=(productMap[r.produkt_id]||"").toLowerCase();
-      if(!name.includes(columnFilters["produkt_id"])) return false;
-    }
 
     return true;
   });
