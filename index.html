@@ -465,7 +465,7 @@ function renderEntnahmenTable(){
   head.innerHTML="";body.innerHTML="";
   if(!entnahmen.length){body.innerHTML="<tr><td>Keine Daten</td></tr>";return;}
 
-  const columns=Object.keys(entnahmen[0]);
+
   const headerRow=document.createElement("tr");
   const filterRow=document.createElement("tr");
 
