@@ -341,19 +341,24 @@ async function saveEntry(){
 function formatDate(dateStr){
   if(!dateStr) return "";
 
-  // Safari Fix für ISO Strings mit Millisekunden
-  const clean = dateStr.replace("Z", "");
-  const d = new Date(clean);
+  // Erwartetes Format von Supabase:
+  // 2026-02-27T18:43:12.345678+00:00
+  // oder
+  // 2026-02-27T18:43:12.345Z
 
-  if (isNaN(d.getTime())) return "";
+  const parts = dateStr.split("T");
+  if(parts.length < 1) return "";
 
-  return d.toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const datePart = parts[0]; // YYYY-MM-DD
+  const dateSegments = datePart.split("-");
+
+  if(dateSegments.length !== 3) return "";
+
+  const year = dateSegments[0];
+  const month = dateSegments[1];
+  const day = dateSegments[2];
+
+  return `${day}.${month}.${year}`;
 }
 
 /* Tabelle */
