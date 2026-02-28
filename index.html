@@ -437,8 +437,13 @@ function renderEntnahmenTable(){
 
     // Datum exakt filtern
 if(columnFilters["zeitpunkt"]){
-  const rowDate = (r.zeitpunkt || "").split(" ")[0]; // 2026-02-28
-  if(rowDate !== columnFilters["zeitpunkt"]) return false;
+
+  const filterDate = columnFilters["zeitpunkt"]; // 2026-02-28
+
+  // ISO Format -> 2026-02-28T04:50:36...
+  const rowDate = (r.zeitpunkt || "").substring(0,10);
+
+  if(rowDate !== filterDate) return false;
 }
 
     // Mitglied filtern
