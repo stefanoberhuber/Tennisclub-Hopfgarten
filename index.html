@@ -341,24 +341,13 @@ async function saveEntry(){
 function formatDate(dateStr){
   if(!dateStr) return "";
 
-  // Erwartetes Format von Supabase:
-  // 2026-02-27T18:43:12.345678+00:00
-  // oder
-  // 2026-02-27T18:43:12.345Z
+  // Supabase Format: 2026-02-28 02:48:37.637388
+  const datePart = dateStr.split(" ")[0]; // nur 2026-02-28
+  const parts = datePart.split("-");      // [2026,02,28]
 
-  const parts = dateStr.split("T");
-  if(parts.length < 1) return "";
+  if(parts.length !== 3) return dateStr;
 
-  const datePart = parts[0]; // YYYY-MM-DD
-  const dateSegments = datePart.split("-");
-
-  if(dateSegments.length !== 3) return "";
-
-  const year = dateSegments[0];
-  const month = dateSegments[1];
-  const day = dateSegments[2];
-
-  return `${day}.${month}.${year}`;
+  return parts[2] + "." + parts[1] + "." + parts[0];
 }
 
 /* Tabelle */
