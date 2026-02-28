@@ -459,65 +459,7 @@ function renderEntnahmenTable(){
   });
 }
   
-function renderEntnahmenTable(){
-  const head=document.getElementById("entnahmenHead");
-  const body=document.getElementById("entnahmenBody");
-  head.innerHTML="";body.innerHTML="";
-  if(!entnahmen.length){body.innerHTML="<tr><td>Keine Daten</td></tr>";return;}
 
-
-  const headerRow=document.createElement("tr");
-  const filterRow=document.createElement("tr");
-
-  columns.forEach(col=>{
-    const th=document.createElement("th");
-    th.textContent=col;
-    th.onclick=()=>{
-      if(currentSortColumn===col){currentSortDesc=!currentSortDesc;}
-      else{currentSortColumn=col;currentSortDesc=true;}
-      renderEntnahmenTable();
-    };
-    headerRow.appendChild(th);
-
-    const f=document.createElement("th");
-    const input=document.createElement("input");
-    input.value=columnFilters[col]||"";
-    input.oninput=e=>{
-      columnFilters[col]=e.target.value.toLowerCase();
-      renderEntnahmenTable();
-    };
-    f.appendChild(input);
-    filterRow.appendChild(f);
-  });
-
-  head.appendChild(headerRow);
-  head.appendChild(filterRow);
-
-  let filtered=entnahmen.filter(r=>
-    columns.every(col=>{
-      if(!columnFilters[col]) return true;
-      return String(r[col]).toLowerCase().includes(columnFilters[col]);
-    })
-  );
-
-  filtered.sort((a,b)=>{
-    let A=a[currentSortColumn],B=b[currentSortColumn];
-    if(!isNaN(Date.parse(A))){A=new Date(A);B=new Date(B);}
-    if(A<B) return currentSortDesc?1:-1;
-    if(A>B) return currentSortDesc?-1:1;
-    return 0;
-  });
-
-  filtered.forEach(r=>{
-    const tr=document.createElement("tr");
-    columns.forEach(col=>{
-      const td=document.createElement("td");
-      td.textContent=r[col];
-      tr.appendChild(td);
-    });
-    body.appendChild(tr);
-  });
-}
 </script>
 </body>
 </html>
