@@ -341,13 +341,17 @@ async function saveEntry(){
 function formatDate(dateStr){
   if(!dateStr) return "";
 
-  // Format: 2026-02-28 04:50
-  const datePart = dateStr.split(" ")[0]; // 2026-02-28
+  // ISO Format: 2026-02-28T04:50:36.863741+00:00
+  const datePart = dateStr.split("T")[0]; // 2026-02-28
   const parts = datePart.split("-");
 
   if(parts.length !== 3) return dateStr;
 
-  return parts[2] + "." + parts[1] + "." + parts[0];
+  const year = parts[0];
+  const month = parts[1];
+  const day = parts[2];
+
+  return day + "." + month + "." + year;
 }
 
 /* Tabelle */
@@ -439,7 +443,7 @@ if(columnFilters["zeitpunkt"]){
 
     // Mitglied filtern
     if(columnFilters["mitglied_id"]){
-      const name=(memberMap[r.mitglied_id]||"").toLowerCase();
+      const rowDate = (r.zeitpunkt || "").split("T")[0];
       if(!name.includes(columnFilters["mitglied_id"])) return false;
     }
 
@@ -452,10 +456,8 @@ if(columnFilters["zeitpunkt"]){
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
 
-if(currentSortColumn==="zeitpunkt"){
-  A = (A || "").split(" ")[0];
-  B = (B || "").split(" ")[0];
-}
+A = (A || "").split("T")[0];
+B = (B || "").split("T")[0];
 
     if(A<B) return currentSortDesc?1:-1;
     if(A>B) return currentSortDesc?-1:1;
