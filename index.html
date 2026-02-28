@@ -360,19 +360,18 @@ function renderEntnahmenTable(){
   const body=document.getElementById("entnahmenBody");
   head.innerHTML="";
   body.innerHTML="";
+
   if(!entnahmen.length){
     body.innerHTML="<tr><td>Keine Daten</td></tr>";
     return;
   }
 
-  /* Mapping ID → Name */
   const memberMap={};
   members.forEach(m=>memberMap[m.id]=m.name);
 
   const productMap={};
   products.forEach(p=>productMap[p.id]=p.name);
 
-  /* gewünschte Spalten (id & bezahlart entfernt) */
   const columns=[
     {key:"created_at",label:"Datum"},
     {key:"mitglied_id",label:"Mitglied"},
@@ -386,7 +385,7 @@ function renderEntnahmenTable(){
 
   columns.forEach(col=>{
     const th=document.createElement("th");
-    th.textContent=col.label;
+    th.textContent=col.label + (currentSortColumn===col.key ? (currentSortDesc?" ↓":" ↑") : "");
     th.onclick=()=>{
       if(currentSortColumn===col.key){
         currentSortDesc=!currentSortDesc;
@@ -399,35 +398,66 @@ function renderEntnahmenTable(){
     headerRow.appendChild(th);
 
     const f=document.createElement("th");
-    const input=document.createElement("input");
-    input.value=columnFilters[col.key]||"";
-    input.oninput=e=>{
-      columnFilters[col.key]=e.target.value.toLowerCase();
-      renderEntnahmenTable();
-    };
-    f.appendChild(input);
+
+    // Datum bekommt Date-Input
+    if(col.key==="created_at"){
+      const input=document.createElement("input");
+      input.type="date";
+      input.value=columnFilters[col.key]||"";
+      input.onchange=e=>{
+        columnFilters[col.key]=e.target.value;
+        renderEntnahmenTable();
+      };
+      f.appendChild(input);
+    }
+
+    // Nur Namen Textsuche
+    else if(col.key==="mitglied_id" || col.key==="produkt_id"){
+      const input=document.createElement("input");
+      input.placeholder="Suchen...";
+      input.value=columnFilters[col.key]||"";
+      input.oninput=e=>{
+        columnFilters[col.key]=e.target.value.toLowerCase();
+        renderEntnahmenTable();
+      };
+      f.appendChild(input);
+    }
+
+    else{
+      f.textContent="";
+    }
+
     filterRow.appendChild(f);
   });
 
   head.appendChild(headerRow);
   head.appendChild(filterRow);
 
-  /* Filtern */
-  let filtered=entnahmen.filter(r=>
-    columns.every(col=>{
-      if(!columnFilters[col.key]) return true;
+  let filtered=entnahmen.filter(r=>{
 
-      let value=r[col.key];
+    // Datum exakt filtern
+    if(columnFilters["created_at"]){
+      const rowDate=new Date(r.created_at);
+      const filterDate=new Date(columnFilters["created_at"]);
+      if(rowDate.toDateString()!==filterDate.toDateString()) return false;
+    }
 
-      if(col.key==="mitglied_id") value=memberMap[value]||"";
-      if(col.key==="produkt_id") value=productMap[value]||"";
-      if(col.key==="created_at") value=formatDate(value);
+    // Mitglied filtern
+    if(columnFilters["mitglied_id"]){
+      const name=(memberMap[r.mitglied_id]||"").toLowerCase();
+      if(!name.includes(columnFilters["mitglied_id"])) return false;
+    }
 
-      return String(value).toLowerCase().includes(columnFilters[col.key]);
-    })
-  );
+    // Produkt filtern
+    if(columnFilters["produkt_id"]){
+      const name=(productMap[r.produkt_id]||"").toLowerCase();
+      if(!name.includes(columnFilters["produkt_id"])) return false;
+    }
 
-  /* Standard: Datum absteigend */
+    return true;
+  });
+
+  // Sortierung
   filtered.sort((a,b)=>{
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
@@ -442,7 +472,6 @@ function renderEntnahmenTable(){
     return 0;
   });
 
-  /* Render */
   filtered.forEach(r=>{
     const tr=document.createElement("tr");
 
