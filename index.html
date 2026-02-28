@@ -341,9 +341,9 @@ async function saveEntry(){
 function formatDate(dateStr){
   if(!dateStr) return "";
 
-  // Supabase Format: 2026-02-28 02:48:37.637388
-  const datePart = dateStr.split(" ")[0]; // nur 2026-02-28
-  const parts = datePart.split("-");      // [2026,02,28]
+  // Format: 2026-02-28 04:50
+  const datePart = dateStr.split(" ")[0]; // 2026-02-28
+  const parts = datePart.split("-");
 
   if(parts.length !== 3) return dateStr;
 
@@ -432,11 +432,10 @@ function renderEntnahmenTable(){
   let filtered=entnahmen.filter(r=>{
 
     // Datum exakt filtern
-    if(columnFilters["created_at"]){
-      const rowDate=new Date(r.created_at);
-      const filterDate=new Date(columnFilters["created_at"]);
-      if(rowDate.toDateString()!==filterDate.toDateString()) return false;
-    }
+if(columnFilters["created_at"]){
+  const rowDate = (r.created_at || "").split(" ")[0]; // 2026-02-28
+  if(rowDate !== columnFilters["created_at"]) return false;
+}
 
     // Mitglied filtern
     if(columnFilters["mitglied_id"]){
@@ -453,10 +452,10 @@ function renderEntnahmenTable(){
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
 
-    if(currentSortColumn==="created_at"){
-      A=new Date(A);
-      B=new Date(B);
-    }
+if(currentSortColumn==="created_at"){
+  A = (A || "").split(" ")[0];
+  B = (B || "").split(" ")[0];
+}
 
     if(A<B) return currentSortDesc?1:-1;
     if(A>B) return currentSortDesc?-1:1;
