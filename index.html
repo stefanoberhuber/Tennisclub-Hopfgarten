@@ -87,6 +87,23 @@ body{font-family:Arial;margin:0;background:#f4f6f8;}
   background:#198754;color:white;font-weight:bold;
   border:none;padding:10px 16px;
 }
+  /* Kleiner Spinner neben dem Speichern-Button */
+.button-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #198754;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+  animation: spin 0.8s linear infinite;
+  display: none; /* standardmäßig unsichtbar */
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 button{padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:white;cursor:pointer;}
 
 
@@ -139,7 +156,9 @@ input[type="date"]::-ms-clear {
     <div id="orderSummary">Kein Produkt gewählt</div>
     <div class="modal-buttons">
       <button onclick="closeModal()">X</button>
-      <button onclick="saveEntry()">Speichern</button>
+<button id="saveButton" onclick="saveEntry()">Speichern
+  <span class="button-spinner" id="saveSpinner"></span>
+</button>
     </div>
   </div>
 </div>
@@ -328,9 +347,48 @@ function updateSummary(){
 }
 
 /* Save */
-async function saveEntry(){
-  const items=Object.values(selectedProducts);
-  if(!items.length) return;
+async function saveEntry() {
+  const items = Object.values(selectedProducts);
+  if (!items.length) return;
+
+  // Spinner anzeigen & Button deaktivieren
+  const spinner = document.getElementById("saveSpinner");
+  const button = document.getElementById("saveButton");
+  spinner.style.display = "inline-block";
+  button.disabled = true;
+
+  try {
+    for (const p of items) {
+      await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mitglied_id: selectedMember.id,
+          produkt_id: p.id,
+          menge: p.qty,
+          gesamtpreis: p.qty * p.preis,
+          bezahlt: false
+        })
+      });
+    }
+
+    updateRecent(selectedMember);
+    entnahmen = await fetchData("entnahmen");
+    renderEntnahmenTable();
+    closeModal();
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Speichern!");
+  } finally {
+    // Spinner ausblenden & Button wieder aktivieren
+    spinner.style.display = "none";
+    button.disabled = false;
+  }
+}
 
   for(const p of items){
     await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
