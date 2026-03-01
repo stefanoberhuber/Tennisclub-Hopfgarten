@@ -400,14 +400,14 @@ function renderEntnahmenTable(){
     const f=document.createElement("th");
 
     // Datum bekommt Date-Input
-    if(col.key==="created_at"){
+  if(col.key==="zeitpunkt"){
       const input=document.createElement("input");
       input.type="date";
       input.value=columnFilters[col.key]||"";
-      input.onchange=e=>{
-        columnFilters[col.key]=e.target.value;
-        renderEntnahmenTable();
-      };
+input.onchange=e=>{
+  columnFilters["zeitpunkt"]=e.target.value;
+  renderEntnahmenTable();
+};
       f.appendChild(input);
     }
 
@@ -447,12 +447,12 @@ if(columnFilters["zeitpunkt"]){
 }
 
     // Mitglied filtern
-    if(columnFilters["mitglied_id"]){
-      const rowDate = (r.zeitpunkt || "").split("T")[0];
-      if(!name.includes(columnFilters["mitglied_id"])) return false;
-    }
-
-
+if(columnFilters["mitglied_id"]){
+  const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
+  if(!memberName.includes(columnFilters["mitglied_id"])) return if(currentSortColumn==="zeitpunkt"){
+  A = (A || "").split("T")[0];
+  B = (B || "").split("T")[0];
+}
     return true;
   });
 
@@ -461,8 +461,10 @@ if(columnFilters["zeitpunkt"]){
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
 
-A = (A || "").split("T")[0];
-B = (B || "").split("T")[0];
+if(currentSortColumn==="zeitpunkt"){
+  A = (A || "").split("T")[0];
+  B = (B || "").split("T")[0];
+}
 
     if(A<B) return currentSortDesc?1:-1;
     if(A>B) return currentSortDesc?-1:1;
