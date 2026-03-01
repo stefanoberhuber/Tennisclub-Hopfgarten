@@ -137,9 +137,6 @@ let members=[],products=[],entnahmen=[];
 let selectedMember=null,selectedProducts={};
 let currentSortColumn="zeitpunkt",currentSortDesc=true,columnFilters={};
 
-// Standard: Filter auf heutiges Datum setzen
-const today = new Date().toISOString().substring(0,10);
-columnFilters["zeitpunkt"] = today;
   
 /* FETCH */
 async function fetchData(table){
@@ -408,21 +405,15 @@ if(col.key==="zeitpunkt"){
 
   const input = document.createElement("input");
   input.type = "date";
+  input.value = columnFilters["zeitpunkt"] || "";
 
-  // 🔵 Nur setzen wenn wirklich ein Wert existiert
-  if(columnFilters["zeitpunkt"]){
-    input.value = columnFilters["zeitpunkt"];
-  }
-
-  input.addEventListener("change", e => {
+  input.addEventListener("input", e => {
     const value = e.target.value;
 
-    // Wenn User Auswahl löscht → wirklich leer lassen
-    if(!value){
-      delete columnFilters["zeitpunkt"];
-      input.removeAttribute("value");
-    } else {
+    if(value){
       columnFilters["zeitpunkt"] = value;
+    } else {
+      delete columnFilters["zeitpunkt"];
     }
 
     renderEntnahmenTable();
