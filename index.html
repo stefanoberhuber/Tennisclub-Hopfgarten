@@ -137,6 +137,10 @@ let members=[],products=[],entnahmen=[];
 let selectedMember=null,selectedProducts={};
 let currentSortColumn="zeitpunkt",currentSortDesc=true,columnFilters={};
 
+// Standard: Filter auf heutiges Datum setzen
+const today = new Date().toISOString().substring(0,10);
+columnFilters["zeitpunkt"] = today;
+  
 /* FETCH */
 async function fetchData(table){
   const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`,{
