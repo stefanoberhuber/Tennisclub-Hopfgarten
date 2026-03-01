@@ -449,10 +449,7 @@ if(columnFilters["zeitpunkt"]){
     // Mitglied filtern
 if(columnFilters["mitglied_id"]){
   const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
-  if(!memberName.includes(columnFilters["mitglied_id"])) return if(currentSortColumn==="zeitpunkt"){
-  A = (A || "").split("T")[0];
-  B = (B || "").split("T")[0];
-}
+  if(!memberName.includes(columnFilters["mitglied_id"])) return 
     return true;
   });
 
