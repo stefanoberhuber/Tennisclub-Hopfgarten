@@ -88,6 +88,16 @@ body{font-family:Arial;margin:0;background:#f4f6f8;}
   border:none;padding:10px 16px;
 }
 button{padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:white;cursor:pointer;}
+
+
+/* Entfernt das "Zurücksetzen"-Symbol im Datepicker */
+input[type="date"]::-webkit-clear-button,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
 </style>
 </head>
 
