@@ -405,13 +405,27 @@ function renderEntnahmenTable(){
 
     // Datum bekommt Date-Input
 if(col.key==="zeitpunkt"){
-  const input=document.createElement("input");
-  input.type="date";
-  input.value=columnFilters[col.key]||"";
-  input.onchange=e=>{
-    columnFilters["zeitpunkt"]=e.target.value;
+
+  const input = document.createElement("input");
+  input.type = "date";
+  input.value = columnFilters[col.key] || "";
+
+  let userChanged = false;
+
+  input.addEventListener("change", e => {
+    userChanged = true;
+    columnFilters["zeitpunkt"] = e.target.value || "";
     renderEntnahmenTable();
-  };
+  });
+
+  input.addEventListener("blur", () => {
+    // 🔵 Wenn kein echtes Datum gewählt wurde → leer lassen
+    if(!userChanged && !columnFilters["zeitpunkt"]){
+      input.value = "";
+    }
+    userChanged = false;
+  });
+
   f.appendChild(input);
 }
 
