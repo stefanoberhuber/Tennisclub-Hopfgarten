@@ -433,25 +433,23 @@ input.onchange=e=>{
   head.appendChild(headerRow);
   head.appendChild(filterRow);
 
-  let filtered=entnahmen.filter(r=>{
+let filtered = entnahmen.filter(r => {
 
-    // Datum exakt filtern
-if(columnFilters["zeitpunkt"]){
+  // 🔵 Datum exakt filtern
+  if(columnFilters["zeitpunkt"]){
+    const filterDate = columnFilters["zeitpunkt"];
+    const rowDate = (r.zeitpunkt || "").substring(0,10);
+    if(rowDate !== filterDate) return false;
+  }
 
-  const filterDate = columnFilters["zeitpunkt"]; // 2026-02-28
+  // 🔵 Mitglied filtern
+  if(columnFilters["mitglied_id"]){
+    const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
+    if(!memberName.includes(columnFilters["mitglied_id"])) return false;
+  }
 
-  // ISO Format -> 2026-02-28T04:50:36...
-  const rowDate = (r.zeitpunkt || "").substring(0,10);
-
-  if(rowDate !== filterDate) return false;
-}
-
-    // Mitglied filtern
-if(columnFilters["mitglied_id"]){
-  const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
-  if(!memberName.includes(columnFilters["mitglied_id"])) return 
-    return true;
-  });
+  return true;
+});
 
   // Sortierung
   filtered.sort((a,b)=>{
