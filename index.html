@@ -66,6 +66,28 @@ body{font-family:Arial;margin:0;background:#f4f6f8;}
   max-height:90vh;border-radius:12px;padding:15px;
   display:flex;flex-direction:column;overflow:hidden;
 }
+
+.modal {
+  position: relative; /* wichtig für absolute Positionierung */
+}
+
+/* Dezenter Close Button rechts oben */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6c757d; /* gleiches Grau wie Bootstrap/Reiter-Stil */
+  cursor: pointer;
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: #343a40; /* leicht dunkler beim Hover */
+}
+  
 .accordion-header{
   padding:8px;background:#e9ecef;margin-top:6px;
   cursor:pointer;border-radius:6px;font-weight:bold;
@@ -158,12 +180,14 @@ input[type="date"]::-ms-clear {
     <h3 id="modalMemberName"></h3>
     <div id="accordionContainer"></div>
     <div id="orderSummary">Kein Produkt gewählt</div>
-    <div class="modal-buttons">
-      <button onclick="closeModal()">X</button>
-<button id="saveButton" onclick="saveEntry()">Speichern
-  <span class="button-spinner" id="saveSpinner"></span>
-</button>
-    </div>
+    <button class="modal-close" onclick="closeModal()">×</button>
+
+<div class="modal-buttons">
+  <div></div>
+  <button id="saveButton" onclick="saveEntry()">Speichern
+    <span class="button-spinner" id="saveSpinner"></span>
+  </button>
+</div>
   </div>
 </div>
 
