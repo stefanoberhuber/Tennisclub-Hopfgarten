@@ -400,16 +400,27 @@ function renderEntnahmenTable(){
     const f=document.createElement("th");
 
     // Datum bekommt Date-Input
-  if(col.key==="zeitpunkt"){
-      const input=document.createElement("input");
-      input.type="date";
-      input.value=columnFilters[col.key]||"";
-input.onchange=e=>{
-  columnFilters["zeitpunkt"]=e.target.value;
-  renderEntnahmenTable();
-};
-      f.appendChild(input);
-    }
+if(col.key==="zeitpunkt"){
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.gap = "4px";
+
+  const input = document.createElement("input");
+  input.type = "date";
+  input.value = columnFilters[col.key] || "";
+
+  const button = document.createElement("button");
+  button.textContent = "Filter";
+  button.onclick = () => {
+    columnFilters["zeitpunkt"] = input.value || "";
+    renderEntnahmenTable();
+  };
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(button);
+  f.appendChild(wrapper);
+}
 
     // Nur Namen Textsuche
     else if(col.key==="mitglied_id"){
