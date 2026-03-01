@@ -421,11 +421,8 @@ function renderEntnahmenTable(){
 
     // Datum bekommt Date-Input
     if(col.key==="zeitpunkt"){
-
       const input = document.createElement("input");
       input.type = "date";
-
-      // Wert setzen (heute)
       input.value = columnFilters["zeitpunkt"];
 
       // Wenn Benutzer Datum ändert
@@ -447,16 +444,37 @@ function renderEntnahmenTable(){
       f.appendChild(input);
     }
 
-    // Mitglied Textsuche
+    // Mitglied Dropdown mit Suchfunktion
     else if(col.key==="mitglied_id"){
-      const input=document.createElement("input");
-      input.placeholder="Suchen...";
-      input.value=columnFilters[col.key]||"";
-      input.oninput=e=>{
-        columnFilters[col.key]=e.target.value.toLowerCase();
+      const wrapper = document.createElement("div");
+      wrapper.style.display = "flex";
+      wrapper.style.flexDirection = "column";
+
+      const datalistId = "memberListDatalist";
+      let datalist = document.getElementById(datalistId);
+      if(!datalist){
+        datalist = document.createElement("datalist");
+        datalist.id = datalistId;
+        members.forEach(m=>{
+          const option = document.createElement("option");
+          option.value = m.name;
+          datalist.appendChild(option);
+        });
+        document.body.appendChild(datalist);
+      }
+
+      const input = document.createElement("input");
+      input.setAttribute("list", datalistId);
+      input.placeholder = "Mitglied auswählen...";
+      input.value = columnFilters[col.key] || "";
+
+      input.addEventListener("input", e=>{
+        columnFilters[col.key] = e.target.value.toLowerCase();
         renderEntnahmenTable();
-      };
-      f.appendChild(input);
+      });
+
+      wrapper.appendChild(input);
+      f.appendChild(wrapper);
     }
 
     else{
@@ -469,6 +487,7 @@ function renderEntnahmenTable(){
   head.appendChild(headerRow);
   head.appendChild(filterRow);
 
+  // Filter anwenden
   let filtered = entnahmen.filter(r => {
 
     // Datum exakt filtern
@@ -502,6 +521,7 @@ function renderEntnahmenTable(){
     return 0;
   });
 
+  // Tabellenzeilen rendern
   filtered.forEach(r=>{
     const tr=document.createElement("tr");
 
