@@ -135,7 +135,11 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
 
 let members=[],products=[],entnahmen=[];
 let selectedMember=null,selectedProducts={};
-let currentSortColumn="zeitpunkt",currentSortDesc=true,columnFilters={};
+let currentSortColumn="zeitpunkt",
+    currentSortDesc=true,
+    columnFilters={
+      zeitpunkt: new Date().toISOString().split("T")[0]
+    };
 
   
 /* FETCH */
@@ -405,17 +409,12 @@ if(col.key==="zeitpunkt"){
 
   const input = document.createElement("input");
   input.type = "date";
-  input.value = columnFilters["zeitpunkt"] || "";
 
-  input.addEventListener("input", e => {
-    const value = e.target.value;
+  // Immer Wert setzen (heute ist ja schon gesetzt)
+  input.value = columnFilters["zeitpunkt"];
 
-    if(value){
-      columnFilters["zeitpunkt"] = value;
-    } else {
-      delete columnFilters["zeitpunkt"];
-    }
-
+  input.addEventListener("change", e => {
+    columnFilters["zeitpunkt"] = e.target.value;
     renderEntnahmenTable();
   });
 
