@@ -408,22 +408,24 @@ if(col.key==="zeitpunkt"){
 
   const input = document.createElement("input");
   input.type = "date";
-  input.value = columnFilters[col.key] || "";
 
-  let userChanged = false;
+  // 🔵 Nur setzen wenn wirklich ein Wert existiert
+  if(columnFilters["zeitpunkt"]){
+    input.value = columnFilters["zeitpunkt"];
+  }
 
   input.addEventListener("change", e => {
-    userChanged = true;
-    columnFilters["zeitpunkt"] = e.target.value || "";
-    renderEntnahmenTable();
-  });
+    const value = e.target.value;
 
-  input.addEventListener("blur", () => {
-    // 🔵 Wenn kein echtes Datum gewählt wurde → leer lassen
-    if(!userChanged && !columnFilters["zeitpunkt"]){
-      input.value = "";
+    // Wenn User Auswahl löscht → wirklich leer lassen
+    if(!value){
+      delete columnFilters["zeitpunkt"];
+      input.removeAttribute("value");
+    } else {
+      columnFilters["zeitpunkt"] = value;
     }
-    userChanged = false;
+
+    renderEntnahmenTable();
   });
 
   f.appendChild(input);
