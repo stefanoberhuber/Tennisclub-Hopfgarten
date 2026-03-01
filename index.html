@@ -191,7 +191,8 @@ input[type="date"]::-ms-clear {
     <button class="modal-close" onclick="closeModal()">×</button>
 
 <div class="modal-buttons">
-  <div></div>
+  <button onclick="openAbrechnung()">Abrechnung erstellen</button>
+
   <button id="saveButton" onclick="saveEntry()">Speichern
     <span class="button-spinner" id="saveSpinner"></span>
   </button>
@@ -202,7 +203,11 @@ input[type="date"]::-ms-clear {
 <script>
 const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co";
 const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM";
+const ADMIN_PIN = "1337";
+let enteredPin = "";
+let abrechnungsModus = false;
 
+  
 let members=[], products=[], entnahmen=[];
 let selectedMember = null, selectedProducts = {};
 let currentSortColumn = "zeitpunkt",
@@ -553,6 +558,190 @@ function renderEntnahmenTable(){
     body.appendChild(tr);
   });
 }
+  function openAbrechnung(){
+  abrechnungsModus = true;
+
+  const offene = entnahmen.filter(e =>
+    e.mitglied_id === selectedMember.id &&
+    !e.rechnung_id
+  );
+
+  const container = document.getElementById("accordionContainer");
+  const summary = document.getElementById("orderSummary");
+
+  container.innerHTML = "";
+
+  if(!offene.length){
+    summary.innerHTML = "<strong>Keine offenen Beträge vorhanden</strong>";
+    return;
+  }
+
+  let total = 0;
+
+  let html = `
+    <button onclick="closeAbrechnung()" style="margin-bottom:10px">← Zurück</button>
+    <h4>Offene Entnahmen</h4>
+    <table style="width:100%;font-size:13px;margin-top:6px">
+      <tr>
+        <th align="left">Datum</th>
+        <th align="left">Produkt</th>
+        <th align="center">Menge</th>
+        <th align="right">Betrag</th>
+      </tr>
+  `;
+
+  offene.forEach(e=>{
+    total += Number(e.gesamtpreis||0);
+
+    const produkt = products.find(p=>p.id===e.produkt_id);
+    html += `
+      <tr>
+        <td>${formatDate(e.zeitpunkt)}</td>
+        <td>${produkt ? produkt.name : "-"}</td>
+        <td align="center">${e.menge}</td>
+        <td align="right">${Number(e.gesamtpreis).toFixed(2)} €</td>
+      </tr>
+    `;
+  });
+
+  html += `</table>
+    <hr>
+    <strong>Gesamt offen: ${total.toFixed(2)} €</strong>
+    <br><br>
+    <button onclick="showPinPad(${total})" 
+      style="background:#198754;color:white;padding:10px 14px;border:none;border-radius:6px;">
+      Zahlung bestätigen
+    </button>
+  `;
+
+  summary.innerHTML = html;
+}
+function closeAbrechnung(){
+  abrechnungsModus = false;
+  renderAccordion();
+  updateSummary();
+}
+
+function showPinPad(total){
+  enteredPin = "";
+
+  const summary = document.getElementById("orderSummary");
+
+  summary.innerHTML = `
+    <h4>Admin PIN eingeben</h4>
+    <div id="pinDisplay" style="font-size:22px;letter-spacing:8px;margin:10px 0;">••••</div>
+
+    <div id="pinPad" style="
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      max-width:240px;
+    "></div>
+  `;
+
+  const pad = document.getElementById("pinPad");
+
+  const keys = ["1","2","3","4","5","6","7","8","9","←","0","OK"];
+
+  keys.forEach(k=>{
+    const btn = document.createElement("button");
+    btn.textContent = k;
+    btn.style.padding="14px";
+    btn.style.fontSize="18px";
+    btn.onclick = ()=>handlePinInput(k,total);
+    pad.appendChild(btn);
+  });
+}
+function handlePinInput(key,total){
+
+  if(key === "←"){
+    enteredPin = enteredPin.slice(0,-1);
+  }
+  else if(key === "OK"){
+    if(enteredPin === ADMIN_PIN){
+      processPayment(total);
+    } else {
+      alert("Falsche PIN");
+      enteredPin = "";
+    }
+  }
+  else{
+    if(enteredPin.length < 4){
+      enteredPin += key;
+    }
+  }
+
+  updatePinDisplay();
+}
+
+function updatePinDisplay(){
+  const display = document.getElementById("pinDisplay");
+  display.textContent = enteredPin.padEnd(4,"•");
+}
+
+async function processPayment(total){
+
+  try{
+
+    // 1️⃣ Rechnung erstellen
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rechnungen`,{
+      method:"POST",
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`,
+        "Content-Type":"application/json",
+        Prefer:"return=representation"
+      },
+      body: JSON.stringify({
+        mitglied_id: selectedMember.id,
+        betrag: total,
+        typ: "kantine"
+      })
+    });
+
+    const newInvoice = await res.json();
+    const rechnungId = newInvoice[0].id;
+
+    // 2️⃣ Offene Entnahmen holen
+    const offene = entnahmen.filter(e =>
+      e.mitglied_id === selectedMember.id &&
+      !e.rechnung_id
+    );
+
+    // 3️⃣ Jede Entnahme updaten
+    for(const e of offene){
+      await fetch(`${SUPABASE_URL}/rest/v1/entnahmen?id=eq.${e.id}`,{
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization:`Bearer ${SUPABASE_KEY}`,
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+          rechnung_id: rechnungId
+        })
+      });
+    }
+
+    document.getElementById("orderSummary").innerHTML =
+      "<h3 style='color:#198754'>✓ Zahlung erfasst</h3>";
+
+    setTimeout(async ()=>{
+      entnahmen = await fetchData("entnahmen");
+      renderEntnahmenTable();
+      closeModal();
+    },1000);
+
+  }catch(err){
+    console.error(err);
+    alert("Fehler bei Zahlung");
+  }
+}
+
+  
+
+
+  
 </script>
 </body>
 </html>
