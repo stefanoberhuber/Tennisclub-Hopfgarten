@@ -275,8 +275,14 @@ function closeModal(){
 }
 document.addEventListener("keydown", e => {
   if(e.key === "Escape") closeModal();
+}
+  // Modal schließen bei Klick außerhalb (Overlay)
+document.getElementById("modalOverlay").addEventListener("click", function(e){
+  if(e.target === this){
+    closeModal();
+  }
 });
-
+                          
 /* --- Accordion --- */
 function getTopProducts(){
   const count = {};
