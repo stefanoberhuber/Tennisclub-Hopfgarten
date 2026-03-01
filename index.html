@@ -420,23 +420,34 @@ function renderEntnahmenTable(){
     const f=document.createElement("th");
 
     // Datum bekommt Date-Input
-if(col.key==="zeitpunkt"){
+    if(col.key==="zeitpunkt"){
 
-  const input = document.createElement("input");
-  input.type = "date";
+      const input = document.createElement("input");
+      input.type = "date";
 
-  // Immer Wert setzen (heute ist ja schon gesetzt)
-  input.value = columnFilters["zeitpunkt"];
+      // Wert setzen (heute)
+      input.value = columnFilters["zeitpunkt"];
 
-  input.addEventListener("change", e => {
-    columnFilters["zeitpunkt"] = e.target.value;
-    renderEntnahmenTable();
-  });
+      // Wenn Benutzer Datum ändert
+      input.addEventListener("change", e => {
+        columnFilters["zeitpunkt"] = e.target.value;
+        renderEntnahmenTable();
+      });
 
-  f.appendChild(input);
-}
+      // Wenn Datum gelöscht / zurückgesetzt wird → auf heute setzen
+      input.addEventListener("input", e => {
+        if(!e.target.value){
+          const today = new Date().toISOString().split("T")[0];
+          e.target.value = today;
+          columnFilters["zeitpunkt"] = today;
+          renderEntnahmenTable();
+        }
+      });
 
-    // Nur Namen Textsuche
+      f.appendChild(input);
+    }
+
+    // Mitglied Textsuche
     else if(col.key==="mitglied_id"){
       const input=document.createElement("input");
       input.placeholder="Suchen...";
@@ -458,33 +469,33 @@ if(col.key==="zeitpunkt"){
   head.appendChild(headerRow);
   head.appendChild(filterRow);
 
-let filtered = entnahmen.filter(r => {
+  let filtered = entnahmen.filter(r => {
 
-  // 🔵 Datum exakt filtern
-  if(columnFilters["zeitpunkt"]){
-    const filterDate = columnFilters["zeitpunkt"];
-    const rowDate = (r.zeitpunkt || "").substring(0,10);
-    if(rowDate !== filterDate) return false;
-  }
+    // Datum exakt filtern
+    if(columnFilters["zeitpunkt"]){
+      const filterDate = columnFilters["zeitpunkt"];
+      const rowDate = (r.zeitpunkt || "").substring(0,10);
+      if(rowDate !== filterDate) return false;
+    }
 
-  // 🔵 Mitglied filtern
-  if(columnFilters["mitglied_id"]){
-    const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
-    if(!memberName.includes(columnFilters["mitglied_id"])) return false;
-  }
+    // Mitglied filtern
+    if(columnFilters["mitglied_id"]){
+      const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
+      if(!memberName.includes(columnFilters["mitglied_id"])) return false;
+    }
 
-  return true;
-});
+    return true;
+  });
 
   // Sortierung
   filtered.sort((a,b)=>{
     let A=a[currentSortColumn];
     let B=b[currentSortColumn];
 
-if(currentSortColumn==="zeitpunkt"){
-  A = (A || "").split("T")[0];
-  B = (B || "").split("T")[0];
-}
+    if(currentSortColumn==="zeitpunkt"){
+      A = (A || "").split("T")[0];
+      B = (B || "").split("T")[0];
+    }
 
     if(A<B) return currentSortDesc?1:-1;
     if(A>B) return currentSortDesc?-1:1;
