@@ -419,7 +419,7 @@ function renderEntnahmenTable(){
 
     const f=document.createElement("th");
 
-    // Datum bekommt Date-Input
+    // Nur Datum bekommt Filter-Input
     if(col.key==="zeitpunkt"){
       const input = document.createElement("input");
       input.type = "date";
@@ -443,40 +443,6 @@ function renderEntnahmenTable(){
 
       f.appendChild(input);
     }
-
-    // Mitglied Dropdown mit Suchfunktion
-    else if(col.key==="mitglied_id"){
-      const wrapper = document.createElement("div");
-      wrapper.style.display = "flex";
-      wrapper.style.flexDirection = "column";
-
-      const datalistId = "memberListDatalist";
-      let datalist = document.getElementById(datalistId);
-      if(!datalist){
-        datalist = document.createElement("datalist");
-        datalist.id = datalistId;
-        members.forEach(m=>{
-          const option = document.createElement("option");
-          option.value = m.name;
-          datalist.appendChild(option);
-        });
-        document.body.appendChild(datalist);
-      }
-
-      const input = document.createElement("input");
-      input.setAttribute("list", datalistId);
-      input.placeholder = "Mitglied auswählen...";
-      input.value = columnFilters[col.key] || "";
-
-      input.addEventListener("input", e=>{
-        columnFilters[col.key] = e.target.value.toLowerCase();
-        renderEntnahmenTable();
-      });
-
-      wrapper.appendChild(input);
-      f.appendChild(wrapper);
-    }
-
     else{
       f.textContent="";
     }
@@ -487,22 +453,13 @@ function renderEntnahmenTable(){
   head.appendChild(headerRow);
   head.appendChild(filterRow);
 
-  // Filter anwenden
+  // Filter anwenden (nur Datum)
   let filtered = entnahmen.filter(r => {
-
-    // Datum exakt filtern
     if(columnFilters["zeitpunkt"]){
       const filterDate = columnFilters["zeitpunkt"];
       const rowDate = (r.zeitpunkt || "").substring(0,10);
       if(rowDate !== filterDate) return false;
     }
-
-    // Mitglied filtern
-    if(columnFilters["mitglied_id"]){
-      const memberName = (memberMap[r.mitglied_id] || "").toLowerCase();
-      if(!memberName.includes(columnFilters["mitglied_id"])) return false;
-    }
-
     return true;
   });
 
@@ -541,7 +498,6 @@ function renderEntnahmenTable(){
     body.appendChild(tr);
   });
 }
-  
 
 </script>
 </body>
