@@ -228,23 +228,79 @@ async function loadData(){
 }
 loadData();
 
-/* --- Mitglieder --- */
+/* --- Mitglieder (optimiert für Tablet UX) --- */
+
 function renderMembers(filter=""){
   const list = document.getElementById("memberList");
   list.innerHTML = "";
-  if(!filter.trim()) return;
-  members
-    .filter(m => m.name.toLowerCase().includes(filter.toLowerCase()))
-    .slice(0,10)
-    .forEach(m=>{
-      const div = document.createElement("div");
-      div.className = "member";
-      div.textContent = m.name;
-      div.onclick = () => openModal(m.id);
-      list.appendChild(div);
-    });
+
+  let displayMembers = [];
+
+  if(!filter.trim()){
+    // Wenn leer → alphabetisch erste 10 anzeigen
+    displayMembers = [...members]
+      .sort((a,b)=>a.name.localeCompare(b.name))
+      .slice(0,10);
+  } else {
+    // Live-Suche
+    displayMembers = members
+      .filter(m => m.name.toLowerCase().includes(filter.toLowerCase()))
+      .slice(0,10);
+  }
+
+  displayMembers.forEach(m=>{
+    const div = document.createElement("div");
+    div.className = "member";
+    div.textContent = m.name;
+    div.onclick = () => {
+      openModal(m.id);
+      resetSearch();
+    };
+    list.appendChild(div);
+  });
 }
-document.getElementById("search").addEventListener("input", e => renderMembers(e.target.value));
+
+// Suchfeld Events
+const searchInput = document.getElementById("search");
+
+// Beim Tippen live filtern
+searchInput.addEventListener("input", e => {
+  renderMembers(e.target.value);
+});
+
+// Beim Fokus → letzte aktive anzeigen
+searchInput.addEventListener("focus", () => {
+  const recent = JSON.parse(localStorage.getItem("recentMembers")||"[]");
+  if(recent.length){
+    renderRecentInSearch();
+  } else {
+    renderMembers("");
+  }
+});
+
+// Helfer: letzte aktive in Suchliste anzeigen
+function renderRecentInSearch(){
+  const list = document.getElementById("memberList");
+  list.innerHTML = "";
+  let recent = JSON.parse(localStorage.getItem("recentMembers")||"[]");
+
+  recent.slice(0,10).forEach(m=>{
+    const div = document.createElement("div");
+    div.className = "member";
+    div.textContent = m.name;
+    div.onclick = () => {
+      openModal(m.id);
+      resetSearch();
+    };
+    list.appendChild(div);
+  });
+}
+
+// Suchfeld zurücksetzen
+function resetSearch(){
+  searchInput.value = "";
+  renderMembers("");
+}
 
 /* --- Recent --- */
 function updateRecent(member){
