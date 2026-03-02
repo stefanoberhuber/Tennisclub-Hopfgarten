@@ -190,10 +190,13 @@ input[type="date"]::-ms-clear {
     <div id="orderSummary">Kein Produkt gewählt</div>
     <button class="modal-close" onclick="closeModal()">×</button>
 
-<div class="modal-buttons">
-  <button onclick="openAbrechnung()">Abrechnung erstellen</button>
+<div class="modal-buttons" id="modalButtons">
+  <button id="abrechnungBtn" onclick="openAbrechnung()">
+    Abrechnung erstellen
+  </button>
 
-  <button id="saveButton" onclick="saveEntry()">Speichern
+  <button id="saveButton" onclick="saveEntry()">
+    Speichern
     <span class="button-spinner" id="saveSpinner"></span>
   </button>
 </div>
@@ -303,16 +306,12 @@ function openModal(id){
 }
 function closeModal(){
   document.getElementById("modalOverlay").style.display = "none";
-}
-document.addEventListener("keydown", e => {
-  if(e.key === "Escape") closeModal();
-});
 
-// Modal schließen bei Klick außerhalb (Overlay)
-document.getElementById("modalOverlay").addEventListener("click", function(e){
-  if(e.target === this){
-    closeModal();
-  }
+  abrechnungsModus = false;
+
+  document.getElementById("abrechnungBtn").style.display = "inline-block";
+  document.getElementById("saveButton").style.display = "inline-flex";
+}
 });
                           
 /* --- Accordion --- */
@@ -558,8 +557,12 @@ function renderEntnahmenTable(){
     body.appendChild(tr);
   });
 }
-  function openAbrechnung(){
+function openAbrechnung(){
   abrechnungsModus = true;
+
+  // 🔴 Buttons ausblenden
+  document.getElementById("abrechnungBtn").style.display = "none";
+  document.getElementById("saveButton").style.display = "none";
 
   const offene = entnahmen.filter(e =>
     e.mitglied_id === selectedMember.id &&
@@ -616,8 +619,14 @@ function renderEntnahmenTable(){
 
   summary.innerHTML = html;
 }
-function closeAbrechnung(){
+  
+  function closeAbrechnung(){
   abrechnungsModus = false;
+
+  // 🟢 Buttons wieder anzeigen
+  document.getElementById("abrechnungBtn").style.display = "inline-block";
+  document.getElementById("saveButton").style.display = "inline-flex";
+
   renderAccordion();
   updateSummary();
 }
