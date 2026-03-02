@@ -709,7 +709,18 @@ if(enteredPin === ADMIN_PIN){
     </div>
   `;
 
+// Spinner anzeigen
+document.getElementById("orderSummary").innerHTML = `
+  <div style="text-align:center">
+    <div>Zahlung wird verarbeitet...</div>
+    <div class="payment-spinner"></div>
+  </div>
+`;
+
+// Browser darf zuerst rendern
+requestAnimationFrame(() => {
   processPayment(total);
+});
 } else {
       alert("Falsche PIN");
       enteredPin = "";
