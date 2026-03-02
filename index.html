@@ -153,6 +153,15 @@ input[type="date"]::-ms-clear {
 .entnahmen-container {
   -webkit-overflow-scrolling: touch;
 }
+  .payment-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #ddd;
+  border-top: 3px solid #198754;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 15px auto;
+}
 
 </style>
 </head>
@@ -690,9 +699,18 @@ function handlePinInput(key,total){
   // Erst NACH dem Render prüfen
   if(enteredPin.length === 4){
 
-    if(enteredPin === ADMIN_PIN){
-      processPayment(total);
-    } else {
+if(enteredPin === ADMIN_PIN){
+
+  // Ladeanzeige anzeigen
+  document.getElementById("orderSummary").innerHTML = `
+    <div style="text-align:center">
+      <div>Zahlung wird verarbeitet...</div>
+      <div class="payment-spinner"></div>
+    </div>
+  `;
+
+  processPayment(total);
+} else {
       alert("Falsche PIN");
       enteredPin = "";
       updatePinDisplay();
