@@ -784,7 +784,7 @@ setTimeout(async ()=>{
   entnahmen = await fetchData("entnahmen");
   renderEntnahmenTable();
   closeModal();
-},300);
+},1000);
   }catch(err){
     console.error(err);
     alert("Fehler bei Zahlung");
