@@ -644,9 +644,14 @@ function showPinPad(total){
 
   summary.innerHTML = `
     <h4>Admin PIN eingeben</h4>
-    <div id="pinDisplay" 
-      style="font-size:22px;letter-spacing:8px;margin:10px 0;">
-    </div>
+<div id="pinDisplay" 
+  style="
+    font-size:22px;
+    letter-spacing:8px;
+    margin:10px 0;
+    height:28px;
+  ">
+</div>
 
     <div id="pinPad" style="
       display:grid;
@@ -673,21 +678,27 @@ function handlePinInput(key,total){
 
   if(key === "←"){
     enteredPin = enteredPin.slice(0,-1);
+    updatePinDisplay();
+    return;
   }
-  else{
-    if(enteredPin.length < 4){
-      enteredPin += key;
 
-      // Sofortige Prüfung bei 4 Ziffern
-      if(enteredPin.length === 4){
+  if(enteredPin.length < 4){
+    enteredPin += key;
+    updatePinDisplay();
+  }
 
-        if(enteredPin === ADMIN_PIN){
-          processPayment(total);
-        } else {
-          alert("Falsche PIN");
-          enteredPin = "";
-          updatePinDisplay();
-        }
+  // Erst NACH dem Render prüfen
+  if(enteredPin.length === 4){
+
+    if(enteredPin === ADMIN_PIN){
+      processPayment(total);
+    } else {
+      alert("Falsche PIN");
+      enteredPin = "";
+      updatePinDisplay();
+    }
+  }
+}
 
         return; // wichtig: verhindert doppeltes Update
       }
