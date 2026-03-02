@@ -700,13 +700,7 @@ function handlePinInput(key,total){
   }
 }
 
-        return; // wichtig: verhindert doppeltes Update
-      }
-    }
-  }
-
-  updatePinDisplay();
-}
+ 
 function updatePinDisplay(){
   const display = document.getElementById("pinDisplay");
   display.textContent = "•".repeat(enteredPin.length);
