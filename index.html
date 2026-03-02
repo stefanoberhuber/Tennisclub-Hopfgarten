@@ -163,6 +163,10 @@ input[type="date"]::-ms-clear {
   margin: 15px auto;
 }
 
+  .paid-row {
+  background-color: rgba(25, 135, 84, 0.08); /* sehr dezentes Grün */
+}
+  
 </style>
 </head>
 
@@ -559,6 +563,11 @@ function renderEntnahmenTable(){
 
   filtered.forEach(r=>{
     const tr = document.createElement("tr");
+
+// Wenn bezahlt → dezente grüne Markierung
+if (r.bezahlt === true) {
+  tr.classList.add("paid-row");
+}
     columns.forEach(col=>{
       const td = document.createElement("td");
       let value = r[col.key];
