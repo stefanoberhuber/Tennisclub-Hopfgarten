@@ -736,19 +736,17 @@ async function processPayment(total){
     );
 
     // 3️⃣ Jede Entnahme updaten
-    for(const e of offene){
-      await fetch(`${SUPABASE_URL}/rest/v1/entnahmen?id=eq.${e.id}`,{
-        method:"PATCH",
-        headers:{
-          apikey: SUPABASE_KEY,
-          Authorization:`Bearer ${SUPABASE_KEY}`,
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          rechnung_id: rechnungId
-        })
-      });
-    }
+await fetch(`${SUPABASE_URL}/rest/v1/entnahmen?mitglied_id=eq.${selectedMember.id}&rechnung_id=is.null`,{
+  method:"PATCH",
+  headers:{
+    apikey: SUPABASE_KEY,
+    Authorization:`Bearer ${SUPABASE_KEY}`,
+    "Content-Type":"application/json"
+  },
+  body: JSON.stringify({
+    rechnung_id: rechnungId
+  })
+});
 
     document.getElementById("orderSummary").innerHTML =
       "<h3 style='color:#198754'>✓ Zahlung erfasst</h3>";
