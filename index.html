@@ -752,8 +752,12 @@ async function processPayment(total){
     alert("Fehler bei Zahlung");
   }
 }
-
-  
+// Modal schließen bei Klick außerhalb (Overlay)
+document.getElementById("modalOverlay").addEventListener("click", function(e) {
+  if (e.target === this) {
+    closeModal();
+  }
+});
 
 
   
