@@ -678,17 +678,18 @@ function handlePinInput(key,total){
     if(enteredPin.length < 4){
       enteredPin += key;
 
-      // Automatische Prüfung nach 4 Ziffern
+      // Sofortige Prüfung bei 4 Ziffern
       if(enteredPin.length === 4){
-        setTimeout(() => {
-          if(enteredPin === ADMIN_PIN){
-            processPayment(total);
-          } else {
-            alert("Falsche PIN");
-            enteredPin = "";
-            updatePinDisplay();
-          }
-        }, 150);
+
+        if(enteredPin === ADMIN_PIN){
+          processPayment(total);
+        } else {
+          alert("Falsche PIN");
+          enteredPin = "";
+          updatePinDisplay();
+        }
+
+        return; // wichtig: verhindert doppeltes Update
       }
     }
   }
