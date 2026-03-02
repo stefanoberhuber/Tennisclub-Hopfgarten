@@ -298,9 +298,16 @@ function renderRecentMembers(){
 function openModal(id){
   selectedMember = members.find(m => m.id == id);
   if(!selectedMember) return;
+
+  abrechnungsModus = false;
+
+  document.getElementById("abrechnungBtn").style.display = "inline-block";
+  document.getElementById("saveButton").style.display = "inline-flex";
+
   selectedProducts = {};
   document.getElementById("modalMemberName").textContent = selectedMember.name;
   document.getElementById("modalOverlay").style.display = "flex";
+
   renderAccordion();
   updateSummary();
 }
@@ -312,7 +319,6 @@ function closeModal(){
   document.getElementById("abrechnungBtn").style.display = "inline-block";
   document.getElementById("saveButton").style.display = "inline-flex";
 }
-});
                           
 /* --- Accordion --- */
 function getTopProducts(){
