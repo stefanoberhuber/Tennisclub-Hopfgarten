@@ -6,6 +6,24 @@
 <title>Tennisclub Entnahmen</title>
 
 <style>
+
+  .admin-link {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  font-size: 20px;
+  text-decoration: none;
+  color: #6c757d;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.admin-link:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #198754;
+}
 body{font-family:Arial;margin:0;background:#f4f6f8;}
 .page-title{text-align:center;font-size:26px;font-weight:bold;padding:20px 0 10px;}
 .section-title{font-size:14px;font-weight:bold;margin-bottom:6px;}
@@ -171,6 +189,12 @@ input[type="date"]::-ms-clear {
 </head>
 
 <body>
+
+<a href="admin/" class="admin-link" title="Admin Bereich">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 016 0v3H9z"/>
+  </svg>
+</a>
 
 <div class="page-title">Entnahme Kühlschrank TC Hopfgarten</div>
 
