@@ -478,10 +478,13 @@ async function saveEntry() {
 
   const spinner = document.getElementById("saveSpinner");
   const button = document.getElementById("saveButton");
-spinner.style.visibility = "visible";
+
+  spinner.style.visibility = "visible";
   button.disabled = true;
 
   try {
+
+    // 🔹 Produkte speichern
     for(const p of items){
       await fetch(`${SUPABASE_URL}/rest/v1/entnahmen`,{
         method:"POST",
@@ -501,14 +504,45 @@ spinner.style.visibility = "visible";
     }
 
     updateRecent(selectedMember);
+
+    // 🔹 Bestätigungsanzeige vorbereiten
+    let productListHtml = "<div style='margin-top:10px;font-size:14px'>";
+    items.forEach(p=>{
+      productListHtml += `
+        <div>• ${p.qty}x ${p.name}</div>
+      `;
+    });
+    productListHtml += "</div>";
+
+    // 🔹 Inhalt ersetzen
+    document.getElementById("accordionContainer").innerHTML = "";
+    document.getElementById("orderSummary").innerHTML = `
+      <div style="text-align:center">
+        <h3 style="color:#198754;margin-bottom:8px;">
+          ✓ Entnahme gespeichert
+        </h3>
+        ${productListHtml}
+      </div>
+    `;
+
+    // 🔹 Buttons ausblenden
+    document.getElementById("abrechnungBtn").style.display = "none";
+    document.getElementById("saveButton").style.display = "none";
+
+    // 🔹 Tabelle im Hintergrund aktualisieren
     entnahmen = await fetchData("entnahmen");
     renderEntnahmenTable();
-    closeModal();
+
+    // 🔹 Modal automatisch schließen
+    setTimeout(()=>{
+      closeModal();
+    }, 1000);
+
   } catch(err){
     console.error(err);
     alert("Fehler beim Speichern!");
   } finally {
-   spinner.style.visibility = "hidden";
+    spinner.style.visibility = "hidden";
     button.disabled = false;
   }
 }
