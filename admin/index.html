@@ -1251,13 +1251,12 @@ const positionen = entnahmen.filter(e=>e.rechnung_id==rechnungId)
 
 let sum=0
 
-let html=`<h2>Rechnung ${r.rechnungsnummer || ""}</h2>`
+let html=`<h2>Rechnungsdetails</h2>`
 
 html+=`
 
 <div class="stat-box">
 Rechnungsnummer: ${r.rechnungsnummer || "-"}<br>
-Typ: ${r.typ || "-"}<br>
 Bezahlt am: ${formatDate(r.datum)}
 </div>
 
