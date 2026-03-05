@@ -1393,11 +1393,10 @@ html+=`
 <tr>
 
 <td>${formatDate(r.datum)}</td>
-
+<td>${r.rechnungsnummer || "-"}</td>
+<td>${r.typ || "-"}</td>
 <td>${memberName(memberId)}</td>
-
 <td>${pos.length}</td>
-
 <td>${sum.toFixed(2)} €</td>
 
 <td>
@@ -1428,7 +1427,7 @@ document.getElementById("rechnungenTable").innerHTML=html
 
 }
 
- function toggleRechnung(id){
+function toggleRechnung(id){
 
 const row=document.getElementById("rechnung_"+id)
 const content=document.getElementById("rechnung_content_"+id)
@@ -1448,27 +1447,12 @@ pos.forEach(e=>{
 html+=`
 
 <tr>
-
-<td>${formatDate(r.datum)}</td>
-
-<td>${r.rechnungsnummer || "-"}</td>
-
-<td>${r.typ || "-"}</td>
-
-<td>${memberName(memberId)}</td>
-
-<td>${pos.length}</td>
-
-<td>${sum.toFixed(2)} €</td>
-
-<td>
-<button onclick="toggleRechnung('${r.id}')">
-Positionen
-</button>
-</td>
-
+<td>${formatDate(e.zeitpunkt)}</td>
+<td>${memberName(e.mitglied_id)}</td>
+<td>${productName(e.produkt_id)}</td>
+<td>${e.menge}</td>
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
 </tr>
-`
 
 `
 
