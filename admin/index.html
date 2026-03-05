@@ -600,11 +600,15 @@ sums[e.mitglied_id]+=Number(e.gesamtpreis||0)
 
 const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1])
 
+let total = 0
+
 let html="<h2>Offene Posten</h2>"
 
 html+="<table><tr><th>Mitglied</th><th>Offen €</th></tr>"
 
 rows.forEach(r=>{
+
+total += r[1]
 
 html+=`
 
@@ -622,10 +626,13 @@ html+=`
 
 html+="</table>"
 
+html+=`
+<div class="stat-box">
+Gesamt offene Posten: ${total.toFixed(2)} €
+</div>
+`
+
 openModal(html)
-
-}
-
 
 
 function showMemberOpen(memberId){
