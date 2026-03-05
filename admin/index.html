@@ -710,7 +710,7 @@ autocomplete="off"
 
 </div>
 
-<input type="hidden" id="memberFilter" value="all">
+<input type="hidden" id="memberFilterEntnahmen" value="all">
 
 </div>
 
@@ -752,7 +752,7 @@ function loadEntnahmen(){
 
 const from=document.getElementById("from").value
 const to=document.getElementById("to").value
-const member=document.getElementById("memberFilter").value
+const member=document.getElementById("memberFilterEntnahmen").value
 const status=document.getElementById("paidFilter").value
 
 let filtered=[...entnahmen]
@@ -1155,7 +1155,7 @@ const list=document.getElementById("memberResults")
 
 if(!search){
 list.style.display="none"
-document.getElementById("memberFilter").value="all"
+document.getElementById("memberFilterEntnahmen").value="all"
 loadEntnahmen()
 return
 }
@@ -1224,7 +1224,7 @@ list.style.display="block"
 function selectMemberRechnung(id,name){
 
 document.getElementById("memberSearchRechnung").value=name
-document.getElementById("memberFilter").value=id
+document.getElementById("memberFilterRechnung").value=id
 
 document.getElementById("memberResultsRechnung").style.display="none"
 
@@ -1349,7 +1349,7 @@ autocomplete="off"
 
 </div>
 
-<input type="hidden" id="memberFilter" value="all">
+<input type="hidden" id="memberFilterRechnung" value="all">
 
 </div>
 
@@ -1367,7 +1367,7 @@ loadRechnungen()
 
 const from=document.getElementById("from").value
 const to=document.getElementById("to").value
-const member=document.getElementById("memberFilter").value
+const member=document.getElementById("memberFilterRechnung").value
 
 let filtered=[...rechnungen]
 
