@@ -1251,9 +1251,17 @@ const positionen = entnahmen.filter(e=>e.rechnung_id==rechnungId)
 
 let sum=0
 
-let html=`<h2>Rechnung</h2>`
+let html=`<h2>Rechnung ${r.rechnungsnummer || ""}</h2>`
 
-html+=`<div class="stat-box">Bezahlt am: ${formatDate(r.datum)}</div>`
+html+=`
+
+<div class="stat-box">
+Rechnungsnummer: ${r.rechnungsnummer || "-"}<br>
+Typ: ${r.typ || "-"}<br>
+Bezahlt am: ${formatDate(r.datum)}
+</div>
+
+`
 
 html+="<table>"
 html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
@@ -1360,7 +1368,7 @@ filtered=filtered.filter(r=>r.datum<=to)
 
 let html="<table>"
 
-html+="<tr><th>Datum</th><th>Mitglied</th><th>Positionen</th><th>Betrag</th><th></th></tr>"
+html+="<tr><th>Datum</th><th>Rechnungsnr.</th><th>Typ</th><th>Mitglied</th><th>Positionen</th><th>Betrag</th><th></th></tr>"
 
 filtered
 .sort((a,b)=>new Date(b.datum)-new Date(a.datum))
@@ -1441,17 +1449,26 @@ html+=`
 
 <tr>
 
-<td>${formatDate(e.zeitpunkt)}</td>
+<td>${formatDate(r.datum)}</td>
 
-<td>${memberName(e.mitglied_id)}</td>
+<td>${r.rechnungsnummer || "-"}</td>
 
-<td>${productName(e.produkt_id)}</td>
+<td>${r.typ || "-"}</td>
 
-<td>${e.menge}</td>
+<td>${memberName(memberId)}</td>
 
-<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+<td>${pos.length}</td>
+
+<td>${sum.toFixed(2)} €</td>
+
+<td>
+<button onclick="toggleRechnung('${r.id}')">
+Positionen
+</button>
+</td>
 
 </tr>
+`
 
 `
 
