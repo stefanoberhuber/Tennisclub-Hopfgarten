@@ -657,16 +657,15 @@ ${memberOptions}
 
 </div>
 
-</div>
-<div style="margin-top:10px">
+</div><div class="preset-filters">
 
-<button class="filter-btn" onclick="presetHeute()">Heute</button>
+<button class="preset-btn" onclick="presetHeute()">Heute</button>
 
-<button class="filter-btn" onclick="preset7Tage()">Letzte 7 Tage</button>
+<button class="preset-btn" onclick="preset7Tage()">7 Tage</button>
 
-<button class="filter-btn" onclick="presetDiesesMonat()">Dieses Monat</button>
+<button class="preset-btn" onclick="presetDiesesMonat()">Dieser Monat</button>
 
-<button class="filter-btn" onclick="presetLetztesMonat()">Letztes Monat</button>
+<button class="preset-btn" onclick="presetLetztesMonat()">Letzter Monat</button>
 
 </div>
 
@@ -1016,6 +1015,22 @@ openModal(html)
 
 }
 
+function filterMemberDropdown(search){
+
+const select=document.getElementById("memberFilter")
+const options=select.options
+
+search=search.toLowerCase()
+
+for(let i=0;i<options.length;i++){
+
+const txt=options[i].text.toLowerCase()
+
+options[i].style.display=txt.includes(search) ? "" : "none"
+
+}
+
+} 
 </script>
 
 </body>
