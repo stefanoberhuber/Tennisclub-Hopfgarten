@@ -149,10 +149,6 @@ Offene Posten
 Entnahmen Übersicht
 </button>
 
-<button class="admin-btn" onclick="openRevenue()">
-Umsatz Übersicht
-</button>
-
 <button class="admin-btn" onclick="productStats()">
 Produkt Statistik
 </button>
@@ -382,10 +378,14 @@ openModal(`
 
 <h2>Mitglied bearbeiten</h2>
 
+<label>Name</label>
 <input id="editName" value="${m.name||""}">
-<input id="editTelefon" value="${m.telefon||""}">
-<input id="editEmail" value="${m.email||""}">
 
+<label>Telefon</label>
+<input id="editTelefon" value="${m.telefon||""}">
+
+<label>Email</label>
+<input id="editEmail" value="${m.email||""}">
 <button class="save" onclick="saveMemberEdit('${id}')">Speichern</button>
 
 `)
