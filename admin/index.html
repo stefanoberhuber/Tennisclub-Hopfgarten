@@ -842,6 +842,61 @@ loadEntnahmen()
 
 }
 
+ function presetHeuteStats(){
+
+const today=new Date().toISOString().split("T")[0]
+
+document.getElementById("from").value=today
+document.getElementById("to").value=today
+
+calcProductStats()
+
+}
+
+function preset7TageStats(){
+
+const d=new Date()
+const to=d.toISOString().split("T")[0]
+
+d.setDate(d.getDate()-7)
+
+const from=d.toISOString().split("T")[0]
+
+document.getElementById("from").value=from
+document.getElementById("to").value=to
+
+calcProductStats()
+
+}
+
+function presetDiesesMonatStats(){
+
+const d=new Date()
+
+const first=new Date(d.getFullYear(),d.getMonth(),1)
+const last=new Date(d.getFullYear(),d.getMonth()+1,0)
+
+document.getElementById("from").value=first.toISOString().split("T")[0]
+document.getElementById("to").value=last.toISOString().split("T")[0]
+
+calcProductStats()
+
+}
+
+function presetLetztesMonatStats(){
+
+const d=new Date()
+
+const first=new Date(d.getFullYear(),d.getMonth()-1,1)
+const last=new Date(d.getFullYear(),d.getMonth(),0)
+
+document.getElementById("from").value=first.toISOString().split("T")[0]
+document.getElementById("to").value=last.toISOString().split("T")[0]
+
+calcProductStats()
+
+}
+
 function openRevenue(){
 
 openModal(`
@@ -906,7 +961,6 @@ Gesamtumsatz: ${total.toFixed(2)} €
 }
 
 
-
 function productStats(){
 
 openModal(`
@@ -916,16 +970,24 @@ openModal(`
 <div class="filter-row">
 
 <div class="filter-group">
-<label>Datum von</label>
-<input type="date" id="from">
+<label>Zeitraum</label>
+<div class="date-group">
+<input type="date" id="from" onchange="calcProductStats()">
+<input type="date" id="to" onchange="calcProductStats()">
+</div>
 </div>
 
-<div class="filter-group">
-<label>Datum bis</label>
-<input type="date" id="to">
 </div>
 
-<button class="filter-btn" onclick="calcProductStats()">Filtern</button>
+<div class="preset-filters">
+
+<button class="preset-btn" onclick="presetHeuteStats()">Heute</button>
+
+<button class="preset-btn" onclick="preset7TageStats()">7 Tage</button>
+
+<button class="preset-btn" onclick="presetDiesesMonatStats()">Dieser Monat</button>
+
+<button class="preset-btn" onclick="presetLetztesMonatStats()">Letzter Monat</button>
 
 </div>
 
@@ -945,14 +1007,14 @@ function calcProductStats(){
 const from=document.getElementById("from").value
 const to=document.getElementById("to").value
 
-let filtered=entnahmen
+let filtered=[...entnahmen]
 
 if(from){
-filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+filtered=filtered.filter(e=>e.zeitpunkt>=from)
 }
 
 if(to){
-filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+filtered=filtered.filter(e=>e.zeitpunkt<=to+"T23:59:59")
 }
 
 const stats={}
