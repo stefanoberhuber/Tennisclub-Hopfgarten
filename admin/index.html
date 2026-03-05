@@ -184,11 +184,41 @@ background:#dee2e6;
 
 /* Mitglied Dropdown Suche */
 
-.member-search{
-width:100%;
-padding:8px;
-border-bottom:1px solid #ddd;
-margin-bottom:6px;
+/* Autocomplete Mitglied */
+
+.member-autocomplete{
+position:relative;
+}
+
+.member-autocomplete input{
+height:44px;
+padding:0 10px;
+font-size:16px;
+border-radius:6px;
+border:1px solid #ccc;
+width:200px;
+}
+
+.autocomplete-list{
+position:absolute;
+top:46px;
+left:0;
+right:0;
+background:white;
+border:1px solid #ddd;
+border-radius:6px;
+max-height:200px;
+overflow-y:auto;
+z-index:10;
+}
+
+.autocomplete-item{
+padding:8px 10px;
+cursor:pointer;
+}
+
+.autocomplete-item:hover{
+background:#f1f3f5;
 }
 /* Mobile Optimierung */
 @media (max-width:600px){
@@ -636,13 +666,20 @@ openModal(`
 <div class="filter-group">
 <label>Mitglied</label>
 
-<input class="member-search" 
-placeholder="Mitglied suchen..."
-oninput="filterMemberDropdown(this.value)">
+<div class="member-autocomplete">
 
-<select id="memberFilter" onchange="loadEntnahmen()">
-${memberOptions}
-</select>
+<input
+id="memberSearch"
+placeholder="Mitglied suchen..."
+oninput="autocompleteMember(this.value)"
+autocomplete="off"
+>
+
+<div id="memberResults" class="autocomplete-list" style="display:none"></div>
+
+</div>
+
+<input type="hidden" id="memberFilter" value="all">
 
 </div>
 
@@ -1015,22 +1052,51 @@ openModal(html)
 
 }
 
-function filterMemberDropdown(search){
+function autocompleteMember(search){
 
-const select=document.getElementById("memberFilter")
-const options=select.options
+const list=document.getElementById("memberResults")
+
+if(!search){
+list.style.display="none"
+document.getElementById("memberFilter").value="all"
+loadEntnahmen()
+return
+}
 
 search=search.toLowerCase()
 
-for(let i=0;i<options.length;i++){
+const results=members.filter(m=>
+m.name.toLowerCase().includes(search)
+)
 
-const txt=options[i].text.toLowerCase()
+let html=""
 
-options[i].style.display=txt.includes(search) ? "" : "none"
+results.forEach(m=>{
+
+html+=`
+<div class="autocomplete-item"
+onclick="selectMember('${m.id}','${m.name}')">
+${m.name}
+</div>
+`
+
+})
+
+list.innerHTML=html
+list.style.display="block"
 
 }
 
-} 
+function selectMember(id,name){
+
+document.getElementById("memberSearch").value=name
+document.getElementById("memberFilter").value=id
+
+document.getElementById("memberResults").style.display="none"
+
+loadEntnahmen()
+
+}
 </script>
 
 </body>
