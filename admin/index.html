@@ -313,8 +313,15 @@ closeModal()
 
 function formatDate(date){
 
-if(!date)return ""
-return date.split("T")[0]
+if(!date) return ""
+
+const d = new Date(date)
+
+const day = String(d.getDate()).padStart(2,"0")
+const month = String(d.getMonth()+1).padStart(2,"0")
+const year = d.getFullYear()
+
+return day+"."+month+"."+year
 
 }
 
@@ -585,6 +592,12 @@ openModal(html)
 
 function openEntnahmen(){
 
+let memberOptions='<option value="all">Alle Mitglieder</option>'
+
+members.forEach(m=>{
+memberOptions+=`<option value="${m.id}">${m.name}</option>`
+})
+
 openModal(`
 
 <h2>Entnahmen Übersicht</h2>
@@ -601,43 +614,88 @@ openModal(`
 <input type="date" id="to">
 </div>
 
+<div class="filter-group">
+<label>Mitglied</label>
+<select id="memberFilter" style="height:44px;border-radius:6px;border:1px solid #ccc;">
+${memberOptions}
+</select>
+</div>
+
+<div class="filter-group">
+<label>Status</label>
+<select id="paidFilter" style="height:44px;border-radius:6px;border:1px solid #ccc;">
+<option value="all">Alle</option>
+<option value="paid">Bezahlt</option>
+<option value="open">Offen</option>
+</select>
+</div>
+
 <button class="filter-btn" onclick="loadEntnahmen()">Filtern</button>
 
 </div>
+
+<div style="margin-top:10px">
+
+<button class="filter-btn" onclick="presetHeute()">Heute</button>
+
+<button class="filter-btn" onclick="preset7Tage()">Letzte 7 Tage</button>
+
+<button class="filter-btn" onclick="presetDiesesMonat()">Dieses Monat</button>
+
+<button class="filter-btn" onclick="presetLetztesMonat()">Letztes Monat</button>
+
+</div>
+
 <div id="entnahmenTable"></div>
+
+<div id="entnahmenSumme" class="stat-box"></div>
 
 `)
 
-}
+loadEntnahmen()
 
+}
 
 
 function loadEntnahmen(){
 
 const from=document.getElementById("from").value
 const to=document.getElementById("to").value
+const member=document.getElementById("memberFilter").value
+const status=document.getElementById("paidFilter").value
 
-let filtered=entnahmen
+let filtered=[...entnahmen]
 
 if(from){
-
-filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
-
+filtered=filtered.filter(e=>e.zeitpunkt>=from)
 }
 
 if(to){
+filtered=filtered.filter(e=>e.zeitpunkt<=to+"T23:59:59")
+}
 
-filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+if(member!="all"){
+filtered=filtered.filter(e=>e.mitglied_id==member)
+}
 
+if(status=="paid"){
+filtered=filtered.filter(e=>e.rechnung_id)
+}
+
+if(status=="open"){
+filtered=filtered.filter(e=>!e.rechnung_id)
 }
 
 filtered.sort((a,b)=>new Date(b.zeitpunkt)-new Date(a.zeitpunkt))
 
-let html="<table>"
+let sum=0
 
-html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+let html="<table>"
+html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th><th>Bezahlt am</th></tr>"
 
 filtered.forEach(e=>{
+
+sum+=Number(e.gesamtpreis||0)
 
 html+=`
 
@@ -653,6 +711,8 @@ html+=`
 
 <td>${Number(e.gesamtpreis).toFixed(2)}</td>
 
+<td>${e.bezahlt_am ? formatDate(e.bezahlt_am) : "-"}</td>
+
 </tr>
 
 `
@@ -663,9 +723,63 @@ html+="</table>"
 
 document.getElementById("entnahmenTable").innerHTML=html
 
+document.getElementById("entnahmenSumme").innerHTML="Summe: "+sum.toFixed(2)+" €"
+
+}
+function presetHeute(){
+
+const today=new Date().toISOString().split("T")[0]
+
+document.getElementById("from").value=today
+document.getElementById("to").value=today
+
+loadEntnahmen()
+
 }
 
+function preset7Tage(){
 
+const d=new Date()
+const to=d.toISOString().split("T")[0]
+
+d.setDate(d.getDate()-7)
+
+const from=d.toISOString().split("T")[0]
+
+document.getElementById("from").value=from
+document.getElementById("to").value=to
+
+loadEntnahmen()
+
+}
+
+function presetDiesesMonat(){
+
+const d=new Date()
+
+const first=new Date(d.getFullYear(),d.getMonth(),1)
+const last=new Date(d.getFullYear(),d.getMonth()+1,0)
+
+document.getElementById("from").value=first.toISOString().split("T")[0]
+document.getElementById("to").value=last.toISOString().split("T")[0]
+
+loadEntnahmen()
+
+}
+
+function presetLetztesMonat(){
+
+const d=new Date()
+
+const first=new Date(d.getFullYear(),d.getMonth()-1,1)
+const last=new Date(d.getFullYear(),d.getMonth(),0)
+
+document.getElementById("from").value=first.toISOString().split("T")[0]
+document.getElementById("to").value=last.toISOString().split("T")[0]
+
+loadEntnahmen()
+
+}
 
 function openRevenue(){
 
