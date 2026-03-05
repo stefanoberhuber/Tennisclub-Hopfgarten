@@ -1,25 +1,649 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Bereich</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body{
-      font-family: Arial;
-      background:#f4f6f8;
-      padding:40px;
-      text-align:center;
-    }
-    h1{
-      color:#198754;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Tennisclub Admin</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+margin:0;
+padding:40px;
+}
+
+h1{
+margin-bottom:30px;
+color:#1D1D1B;
+}
+
+.admin-buttons{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
+max-width:900px;
+}
+
+.admin-btn{
+padding:18px;
+font-size:15px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#1D1D1B;
+color:white;
+transition:all .2s ease;
+}
+
+.admin-btn:hover{
+transform:translateY(-2px);
+opacity:0.9;
+}
+
+#modalOverlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.45);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.modal{
+background:white;
+width:95%;
+max-width:1000px;
+max-height:90vh;
+border-radius:14px;
+padding:25px;
+overflow-y:auto;
+position:relative;
+}
+
+.close{
+position:absolute;
+top:12px;
+right:16px;
+font-size:22px;
+cursor:pointer;
+border:none;
+background:none;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th{
+background:#eee;
+padding:8px;
+text-align:left;
+}
+
+td{
+padding:8px;
+border-bottom:1px solid #ddd;
+}
+
+tr:hover{
+background:#f7f7f7;
+}
+
+input{
+padding:8px;
+margin-bottom:10px;
+width:100%;
+box-sizing:border-box;
+}
+
+button.save{
+background:#198754;
+color:white;
+border:none;
+padding:10px 14px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.filter-row{
+display:flex;
+gap:10px;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+.stat-box{
+background:#f1f3f5;
+padding:15px;
+border-radius:8px;
+margin-top:10px;
+font-size:18px;
+}
+
+</style>
 </head>
+
 <body>
 
-  <h1>Admin Bereich</h1>
-  <p>Testseite funktioniert ✅</p>
+<h1>Admin Bereich</h1>
+
+<div class="admin-buttons">
+
+<button class="admin-btn" onclick="openMembers()">
+Neues Mitglied
+</button>
+
+<button class="admin-btn" onclick="showMemberList()">
+Mitgliederliste
+</button>
+
+<button class="admin-btn" onclick="openOpenPosts()">
+Offene Posten
+</button>
+
+<button class="admin-btn" onclick="openEntnahmen()">
+Entnahmen Übersicht
+</button>
+
+<button class="admin-btn" onclick="openRevenue()">
+Umsatz Übersicht
+</button>
+
+<button class="admin-btn" onclick="productStats()">
+Produkt Statistik
+</button>
+
+<button class="admin-btn" onclick="memberRanking()">
+Mitglieder Ranking
+</button>
+
+</div>
+
+
+<div id="modalOverlay">
+<div class="modal">
+
+<button class="close" onclick="closeModal()">×</button>
+
+<div id="modalContent"></div>
+
+</div>
+</div>
+
+
+<script>
+
+const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co"
+const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM"
+
+let members=[]
+let products=[]
+let entnahmen=[]
+
+async function fetchData(table){
+
+const res=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?select=*",{
+
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY
+}
+
+})
+
+return await res.json()
+
+}
+
+async function loadData(){
+
+members=await fetchData("mitglieder")
+products=await fetchData("produkte")
+entnahmen=await fetchData("entnahmen")
+
+}
+
+loadData()
+
+
+function openModal(html){
+
+document.getElementById("modalContent").innerHTML=html
+document.getElementById("modalOverlay").style.display="flex"
+
+}
+
+function closeModal(){
+
+document.getElementById("modalOverlay").style.display="none"
+
+}
+
+function formatDate(date){
+
+if(!date)return ""
+return date.split("T")[0]
+
+}
+
+function productName(id){
+
+const p=products.find(p=>p.id==id)
+return p?p.name:"-"
+
+}
+
+function memberName(id){
+
+const m=members.find(m=>m.id==id)
+return m?m.name:"-"
+
+}
+
+
+
+function openMembers(){
+
+openModal(`
+
+<h2>Neues Mitglied</h2>
+
+<input id="name" placeholder="Name">
+
+<input id="telefon" placeholder="Telefon">
+
+<input id="email" placeholder="Email">
+
+<button class="save" onclick="saveMember()">Mitglied speichern</button>
+
+`)
+
+}
+
+async function saveMember(){
+
+const name=document.getElementById("name").value
+const telefon=document.getElementById("telefon").value
+const email=document.getElementById("email").value
+
+await fetch(SUPABASE_URL+"/rest/v1/mitglieder",{
+
+method:"POST",
+
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name,
+telefon:telefon,
+email:email
+})
+
+})
+
+alert("Mitglied gespeichert")
+
+await loadData()
+
+closeModal()
+
+}
+
+
+
+function showMemberList(){
+
+let html="<h2>Mitglieder</h2>"
+
+html+="<table><tr><th>Name</th><th>Telefon</th><th>Email</th></tr>"
+
+members.forEach(m=>{
+
+html+=`
+
+<tr>
+<td>${m.name}</td>
+<td>${m.telefon||""}</td>
+<td>${m.email||""}</td>
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function openOpenPosts(){
+
+const open=entnahmen.filter(e=>!e.rechnung_id)
+
+const sums={}
+
+open.forEach(e=>{
+
+if(!sums[e.mitglied_id])sums[e.mitglied_id]=0
+
+sums[e.mitglied_id]+=Number(e.gesamtpreis||0)
+
+})
+
+const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1])
+
+let html="<h2>Offene Posten</h2>"
+
+html+="<table><tr><th>Mitglied</th><th>Offen €</th></tr>"
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr onclick="showMemberOpen('${r[0]}')" style="cursor:pointer">
+
+<td>${memberName(r[0])}</td>
+
+<td>${r[1].toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function showMemberOpen(memberId){
+
+const open=entnahmen.filter(e=>e.mitglied_id==memberId && !e.rechnung_id)
+
+let html=`<h2>Offene Posten - ${memberName(memberId)}</h2>`
+
+html+="<table><tr><th>Datum</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+
+open.forEach(e=>{
+
+html+=`
+
+<tr>
+
+<td>${formatDate(e.zeitpunkt)}</td>
+
+<td>${productName(e.produkt_id)}</td>
+
+<td>${e.menge}</td>
+
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function openEntnahmen(){
+
+openModal(`
+
+<h2>Entnahmen Übersicht</h2>
+
+<div class="filter-row">
+
+<input type="date" id="from">
+
+<input type="date" id="to">
+
+<button onclick="loadEntnahmen()">Filtern</button>
+
+</div>
+
+<div id="entnahmenTable"></div>
+
+`)
+
+}
+
+
+
+function loadEntnahmen(){
+
+const from=document.getElementById("from").value
+const to=document.getElementById("to").value
+
+let filtered=entnahmen
+
+if(from){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+
+}
+
+if(to){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+
+}
+
+filtered.sort((a,b)=>new Date(b.zeitpunkt)-new Date(a.zeitpunkt))
+
+let html="<table>"
+
+html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+
+filtered.forEach(e=>{
+
+html+=`
+
+<tr>
+
+<td>${formatDate(e.zeitpunkt)}</td>
+
+<td>${memberName(e.mitglied_id)}</td>
+
+<td>${productName(e.produkt_id)}</td>
+
+<td>${e.menge}</td>
+
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+document.getElementById("entnahmenTable").innerHTML=html
+
+}
+
+
+
+function openRevenue(){
+
+openModal(`
+
+<h2>Umsatz Übersicht</h2>
+
+<div class="filter-row">
+
+<input type="date" id="from">
+
+<input type="date" id="to">
+
+<button onclick="calcRevenue()">Berechnen</button>
+
+</div>
+
+<div id="revenueResult"></div>
+
+`)
+
+}
+
+
+
+function calcRevenue(){
+
+const from=document.getElementById("from").value
+const to=document.getElementById("to").value
+
+let filtered=entnahmen
+
+if(from){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+
+}
+
+if(to){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+
+}
+
+let total=0
+
+filtered.forEach(e=>{
+
+total+=Number(e.gesamtpreis||0)
+
+})
+
+document.getElementById("revenueResult").innerHTML=`
+
+<div class="stat-box">
+
+Gesamtumsatz: ${total.toFixed(2)} €
+
+</div>
+
+`
+
+}
+
+
+
+function productStats(){
+
+const stats={}
+
+entnahmen.forEach(e=>{
+
+if(!stats[e.produkt_id]){
+
+stats[e.produkt_id]={qty:0,umsatz:0}
+
+}
+
+stats[e.produkt_id].qty+=Number(e.menge)
+
+stats[e.produkt_id].umsatz+=Number(e.gesamtpreis)
+
+})
+
+const rows=Object.entries(stats).sort((a,b)=>b[1].qty-a[1].qty)
+
+let html="<h2>Produkt Statistik</h2>"
+
+html+="<table><tr><th>Produkt</th><th>Menge</th><th>Umsatz</th></tr>"
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr>
+
+<td>${productName(r[0])}</td>
+
+<td>${r[1].qty}</td>
+
+<td>${r[1].umsatz.toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function memberRanking(){
+
+const stats={}
+
+entnahmen.forEach(e=>{
+
+if(!stats[e.mitglied_id]){
+
+stats[e.mitglied_id]=0
+
+}
+
+stats[e.mitglied_id]+=Number(e.gesamtpreis)
+
+})
+
+const rows=Object.entries(stats).sort((a,b)=>b[1]-a[1])
+
+let html="<h2>Mitglieder Ranking</h2>"
+
+html+="<table><tr><th>Mitglied</th><th>Umsatz</th></tr>"
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr>
+
+<td>${memberName(r[0])}</td>
+
+<td>${r[1].toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+</script>
 
 </body>
 </html>
