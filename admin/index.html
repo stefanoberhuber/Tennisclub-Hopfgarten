@@ -1170,6 +1170,54 @@ list.style.display="block"
 
 }
 
+function autocompleteMemberRechnung(search){
+
+const list=document.getElementById("memberResultsRechnung")
+
+if(!search){
+
+list.style.display="none"
+document.getElementById("memberFilter").value="all"
+
+loadRechnungen()
+
+return
+}
+
+search=search.toLowerCase()
+
+const results=members.filter(m=>
+m.name.toLowerCase().includes(search)
+)
+
+let html=""
+
+results.forEach(m=>{
+
+html+=`
+<div class="autocomplete-item"
+onclick="selectMemberRechnung('${m.id}','${m.name}')">
+${m.name}
+</div>
+`
+
+})
+
+list.innerHTML=html
+list.style.display="block"
+
+}
+function selectMemberRechnung(id,name){
+
+document.getElementById("memberSearchRechnung").value=name
+document.getElementById("memberFilter").value=id
+
+document.getElementById("memberResultsRechnung").style.display="none"
+
+loadRechnungen()
+
+} 
+
 function selectMember(id,name){
 
 document.getElementById("memberSearch").value=name
@@ -1262,9 +1310,20 @@ openModal(`
 <div class="filter-group">
 <label>Mitglied</label>
 
-<select id="memberFilter" onchange="loadRechnungen()">
-${memberOptions}
-</select>
+<div class="member-autocomplete">
+
+<input
+id="memberSearchRechnung"
+placeholder="Mitglied suchen..."
+oninput="autocompleteMemberRechnung(this.value)"
+autocomplete="off"
+>
+
+<div id="memberResultsRechnung" class="autocomplete-list" style="display:none"></div>
+
+</div>
+
+<input type="hidden" id="memberFilter" value="all">
 
 </div>
 
