@@ -121,54 +121,75 @@ cursor:pointer;
 font-size:16px;
 }
 
-.filter-row input{
-padding:0 10px;
-font-size:16px;
-border-radius:6px;
-border:1px solid #ccc;
-width:180px;
-height:44px;
-box-sizing:border-box;
+.filter-row{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+align-items:flex-end;
+margin-bottom:12px;
 }
 
 .filter-group{
 display:flex;
 flex-direction:column;
-width:180px;
+min-width:160px;
 }
 
 .filter-group label{
-font-size:14px;
-margin-bottom:4px;
+font-size:13px;
+margin-bottom:3px;
 font-weight:600;
-color:#444;
+color:#777;
 }
 
-.filter-row input{
-padding:10px;
+.filter-row input,
+.filter-row select{
+height:44px;
+padding:0 10px;
 font-size:16px;
 border-radius:6px;
 border:1px solid #ccc;
-width:180px;
+box-sizing:border-box;
+min-width:160px;
 }
 
-.filter-btn{
-background:#1D1D1B;
-color:white;
-border:none;
-padding:0 22px;
-font-size:16px;
-border-radius:8px;
-cursor:pointer;
-height:44px;
+/* Datumsgruppe */
+
+.date-group{
 display:flex;
-align-items:center;
+gap:10px;
 }
 
-.filter-btn:hover{
-opacity:0.9;
+/* Preset Filter */
+
+.preset-filters{
+display:flex;
+gap:8px;
+margin-bottom:10px;
+flex-wrap:wrap;
 }
 
+.preset-btn{
+background:#e9ecef;
+border:none;
+padding:8px 14px;
+border-radius:6px;
+font-size:14px;
+cursor:pointer;
+}
+
+.preset-btn:hover{
+background:#dee2e6;
+}
+
+/* Mitglied Dropdown Suche */
+
+.member-search{
+width:100%;
+padding:8px;
+border-bottom:1px solid #ddd;
+margin-bottom:6px;
+}
 /* Mobile Optimierung */
 @media (max-width:600px){
 
@@ -605,35 +626,38 @@ openModal(`
 <div class="filter-row">
 
 <div class="filter-group">
-<label>Datum von</label>
-<input type="date" id="from">
+<label>Zeitraum</label>
+<div class="date-group">
+<input type="date" id="from" onchange="loadEntnahmen()">
+<input type="date" id="to" onchange="loadEntnahmen()">
 </div>
-
-<div class="filter-group">
-<label>Datum bis</label>
-<input type="date" id="to">
 </div>
 
 <div class="filter-group">
 <label>Mitglied</label>
-<select id="memberFilter" style="height:44px;border-radius:6px;border:1px solid #ccc;">
+
+<input class="member-search" 
+placeholder="Mitglied suchen..."
+oninput="filterMemberDropdown(this.value)">
+
+<select id="memberFilter" onchange="loadEntnahmen()">
 ${memberOptions}
 </select>
+
 </div>
 
 <div class="filter-group">
 <label>Status</label>
-<select id="paidFilter" style="height:44px;border-radius:6px;border:1px solid #ccc;">
+
+<select id="paidFilter" onchange="loadEntnahmen()">
 <option value="all">Alle</option>
 <option value="paid">Bezahlt</option>
 <option value="open">Offen</option>
 </select>
-</div>
-
-<button class="filter-btn" onclick="loadEntnahmen()">Filtern</button>
 
 </div>
 
+</div>
 <div style="margin-top:10px">
 
 <button class="filter-btn" onclick="presetHeute()">Heute</button>
