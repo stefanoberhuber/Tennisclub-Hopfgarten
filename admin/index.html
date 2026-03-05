@@ -125,7 +125,7 @@ font-size:16px;
 display:flex;
 gap:12px;
 flex-wrap:wrap;
-align-items:flex-end;
+align-items:flex-start;
 margin-bottom:12px;
 }
 
@@ -151,6 +151,7 @@ border-radius:6px;
 border:1px solid #ccc;
 box-sizing:border-box;
 min-width:160px;
+margin-top:0;
 }
 
 /* Datumsgruppe */
@@ -684,7 +685,7 @@ autocomplete="off"
 </div>
 
 <div class="filter-group">
-<label>Status</label>
+<label>Zahlungsstatus</label>
 
 <select id="paidFilter" onchange="loadEntnahmen()">
 <option value="all">Alle</option>
