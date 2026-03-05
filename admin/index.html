@@ -1,134 +1,127 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Admin Produkte</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Tennisclub Admin</title>
 
 <style>
 
 body{
 font-family:Arial;
+background:#f4f6f8;
 margin:0;
-background:#f4f4f4;
-}
-
-.container{
-max-width:1100px;
-margin:auto;
-padding:20px;
+padding:40px;
 }
 
 h1{
-margin-bottom:20px;
+margin-bottom:30px;
+color:#1D1D1B;
 }
 
-.grid{
+.admin-buttons{
 display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
+max-width:900px;
 }
 
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-button{
-padding:12px 18px;
+.admin-btn{
+padding:18px;
+font-size:15px;
 border:none;
-border-radius:8px;
-background:#007bff;
-color:white;
-font-size:16px;
+border-radius:10px;
 cursor:pointer;
+background:#1D1D1B;
+color:white;
+transition:all .2s ease;
 }
 
-button.secondary{
-background:#555;
+.admin-btn:hover{
+transform:translateY(-2px);
+opacity:0.9;
 }
 
-button.danger{
-background:#d33;
+#modalOverlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.45);
+display:none;
+justify-content:center;
+align-items:center;
 }
 
-input{
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-font-size:16px;
-width:100%;
-box-sizing:border-box;
+.modal{
+background:white;
+width:95%;
+max-width:1000px;
+max-height:90vh;
+border-radius:14px;
+padding:25px;
+overflow-y:auto;
+position:relative;
+}
+
+.close{
+position:absolute;
+top:12px;
+right:16px;
+font-size:22px;
+cursor:pointer;
+border:none;
+background:none;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:10px;
+margin-top:15px;
 }
 
-th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
+th{
+background:#eee;
+padding:8px;
 text-align:left;
 }
 
-.modal-backdrop{
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:rgba(0,0,0,0.5);
-display:none;
-align-items:center;
-justify-content:center;
+td{
+padding:8px;
+border-bottom:1px solid #ddd;
 }
 
-.modal{
-background:white;
-padding:25px;
-border-radius:10px;
-width:90%;
-max-width:450px;
+tr:hover{
+background:#f7f7f7;
 }
 
-.modal h2{
-margin-top:0;
+input{
+padding:8px;
+margin-bottom:10px;
+width:100%;
+box-sizing:border-box;
 }
 
-.modal-buttons{
-margin-top:20px;
+button.save{
+background:#198754;
+color:white;
+border:none;
+padding:10px 14px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.filter-row{
 display:flex;
 gap:10px;
-justify-content:flex-end;
+margin-top:10px;
+margin-bottom:10px;
 }
 
-.confirm-box{
-position:fixed;
-bottom:30px;
-right:30px;
-background:#28a745;
-color:white;
-padding:15px 20px;
+.stat-box{
+background:#f1f3f5;
+padding:15px;
 border-radius:8px;
-display:none;
-}
-
-@media (max-width:900px){
-
-.grid{
-grid-template-columns:1fr;
-}
-
-button{
+margin-top:10px;
 font-size:18px;
-padding:14px;
-}
-
 }
 
 </style>
@@ -136,250 +129,666 @@ padding:14px;
 
 <body>
 
-<div class="container">
-
 <h1>Admin Bereich</h1>
 
-<div class="grid">
+<div class="admin-buttons">
 
-<!-- Mitglieder -->
+<button class="admin-btn" onclick="openMembers()">
+Neues Mitglied
+</button>
 
-<div class="card">
+<button class="admin-btn" onclick="showMemberList()">
+Mitgliederliste
+</button>
 
-<h2>Mitglieder</h2>
+<button class="admin-btn" onclick="openOpenPosts()">
+Offene Posten
+</button>
 
-<input id="searchMember" placeholder="Name suchen...">
+<button class="admin-btn" onclick="openEntnahmen()">
+Entnahmen Übersicht
+</button>
 
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Aktion</th>
-</tr>
-</thead>
-<tbody id="memberList"></tbody>
-</table>
+<button class="admin-btn" onclick="openRevenue()">
+Umsatz Übersicht
+</button>
 
-</div>
+<button class="admin-btn" onclick="productStats()">
+Produkt Statistik
+</button>
 
-
-<!-- Produkt Statistik -->
-
-<div class="card">
-
-<h2>Produkt Statistik</h2>
-
-<div style="display:flex;gap:10px;margin-bottom:10px;">
-<input type="date" id="fromDate">
-<input type="date" id="toDate">
-<button onclick="loadStats()">Filtern</button>
-</div>
-
-<table>
-<thead>
-<tr>
-<th>Produkt</th>
-<th>Anzahl</th>
-<th>Umsatz</th>
-</tr>
-</thead>
-<tbody id="statsList"></tbody>
-</table>
-
-<h3 id="totalRevenue">Umsatz gesamt: 0€</h3>
+<button class="admin-btn" onclick="memberRanking()">
+Mitglieder Ranking
+</button>
 
 </div>
 
-</div>
 
-</div>
+<div id="modalOverlay">
+<div class="modal">
 
-<!-- Modal -->
+<button class="close" onclick="closeModal()">×</button>
 
-<div id="modalBackdrop" class="modal-backdrop">
-
-<div class="modal" id="modal">
-
-<h2>Mitglied bearbeiten</h2>
-
-<input id="memberName">
-
-<div class="modal-buttons">
-<button class="secondary" onclick="closeModal()">Abbrechen</button>
-<button onclick="saveMember()">Speichern</button>
-</div>
+<div id="modalContent"></div>
 
 </div>
 </div>
 
-
-<div id="confirmBox" class="confirm-box">
-Gespeichert
-</div>
 
 <script>
 
-const supabase = window.supabase.createClient(
-"SUPABASE_URL",
-"SUPABASE_ANON_KEY"
-)
+const SUPABASE_URL="https://lzrbcphditfrgvfoswpr.supabase.co"
+const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM"
 
-let currentMemberId=null
+let members=[]
+let products=[]
+let entnahmen=[]
 
-// Modal schließen bei Escape
+async function fetchData(table){
 
-document.addEventListener("keydown",(e)=>{
-if(e.key==="Escape") closeModal()
+const res=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?select=*",{
+
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY
+}
+
 })
 
-// Modal schließen bei Klick außerhalb
+return await res.json()
 
-document.getElementById("modalBackdrop").addEventListener("click",(e)=>{
-if(e.target.id==="modalBackdrop") closeModal()
-})
+}
 
-function openModal(){
+async function loadData(){
 
-document.getElementById("modalBackdrop").style.display="flex"
+members=await fetchData("mitglieder")
+products=await fetchData("produkte")
+entnahmen=await fetchData("entnahmen")
+
+}
+
+loadData()
+
+
+function openModal(html){
+
+document.getElementById("modalContent").innerHTML=html
+document.getElementById("modalOverlay").style.display="flex"
 
 }
 
 function closeModal(){
 
-document.getElementById("modalBackdrop").style.display="none"
+document.getElementById("modalOverlay").style.display="none"
 
 }
 
-// Confirm Box
-
-function showConfirm(){
-
-const box=document.getElementById("confirmBox")
-
-box.style.display="block"
-
-setTimeout(()=>{
-box.style.display="none"
-},2000)
-
+ // ESC schließt Modal
+document.addEventListener("keydown",(e)=>{
+if(e.key==="Escape"){
+closeModal()
 }
-
-// Mitglieder laden
-
-async function loadMembers(){
-
-let search=document.getElementById("searchMember").value
-
-let query=supabase.from("members").select("*")
-
-if(search){
-
-query=query.ilike("name","%"+search+"%")
-
-}
-
-let {data}=await query
-
-let list=document.getElementById("memberList")
-
-list.innerHTML=""
-
-data.forEach(m=>{
-
-let tr=document.createElement("tr")
-
-tr.innerHTML=`
-<td>${m.name}</td>
-<td>
-<button onclick="editMember('${m.id}','${m.name}')">Bearbeiten</button>
-</td>
-`
-
-list.appendChild(tr)
-
 })
 
+// Klick außerhalb Modal schließen
+document.getElementById("modalOverlay").addEventListener("click",(e)=>{
+
+if(e.target.id==="modalOverlay"){
+closeModal()
 }
 
-// Bearbeiten
+}) 
 
-function editMember(id,name){
+function formatDate(date){
 
-currentMemberId=id
-
-document.getElementById("memberName").value=name
-
-openModal()
+if(!date)return ""
+return date.split("T")[0]
 
 }
 
-// Speichern
+function productName(id){
+
+const p=products.find(p=>p.id==id)
+return p?p.name:"-"
+
+}
+
+function memberName(id){
+
+const m=members.find(m=>m.id==id)
+return m?m.name:"-"
+
+}
+
+
+
+function openMembers(){
+
+openModal(`
+
+<h2>Neues Mitglied</h2>
+
+<input id="name" placeholder="Name">
+
+<input id="telefon" placeholder="Telefon">
+
+<input id="email" placeholder="Email">
+
+<button class="save" onclick="saveMember()">Mitglied speichern</button>
+
+`)
+
+}
 
 async function saveMember(){
 
-let name=document.getElementById("memberName").value
+const name=document.getElementById("name").value
+const telefon=document.getElementById("telefon").value
+const email=document.getElementById("email").value
 
-await supabase
-.from("members")
-.update({name})
-.eq("id",currentMemberId)
+await fetch(SUPABASE_URL+"/rest/v1/mitglieder",{
 
-closeModal()
+method:"POST",
 
-showConfirm()
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
 
-loadMembers()
-
-}
-
-// Statistik laden
-
-async function loadStats(){
-
-let from=document.getElementById("fromDate").value
-let to=document.getElementById("toDate").value
-
-let query=supabase.from("sales_view").select("*")
-
-if(from) query=query.gte("date",from)
-if(to) query=query.lte("date",to)
-
-let {data}=await query
-
-let list=document.getElementById("statsList")
-
-list.innerHTML=""
-
-let total=0
-
-data.forEach(p=>{
-
-total+=p.revenue
-
-let tr=document.createElement("tr")
-
-tr.innerHTML=`
-<td>${p.product}</td>
-<td>${p.amount}</td>
-<td>${p.revenue} €</td>
-`
-
-list.appendChild(tr)
+body:JSON.stringify({
+name:name,
+telefon:telefon,
+email:email
+})
 
 })
 
-document.getElementById("totalRevenue").innerText="Umsatz gesamt: "+total+" €"
+alert("Mitglied gespeichert")
+
+await loadData()
+
+closeModal()
 
 }
 
-// Suche Listener
 
-document.getElementById("searchMember").addEventListener("input",loadMembers)
 
-// Start
+function showMemberList(){
 
-loadMembers()
-loadStats()
+let html=`
+
+<h2>Mitglieder</h2>
+
+<input id="memberSearch" placeholder="Mitglied suchen..." oninput="renderMemberList()">
+
+<div id="memberTable"></div>
+
+`
+
+openModal(html)
+
+renderMemberList()
+
+}
+
+
+function renderMemberList(){
+
+const search=(document.getElementById("memberSearch").value || "").toLowerCase()
+
+let filtered=members.filter(m=>m.name.toLowerCase().includes(search))
+
+let html="<table>"
+
+html+="<tr><th>Name</th><th>Telefon</th><th>Email</th><th></th></tr>"
+
+filtered.forEach(m=>{
+
+html+=`
+
+<tr>
+
+<td>${m.name}</td>
+
+<td>${m.telefon||""}</td>
+
+<td>${m.email||""}</td>
+
+<td>
+
+<button onclick="editMember('${m.id}')">Bearbeiten</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+document.getElementById("memberTable").innerHTML=html
+
+}
+
+
+function editMember(id){
+
+const m=members.find(x=>x.id==id)
+
+openModal(`
+
+<h2>Mitglied bearbeiten</h2>
+
+<input id="editName" value="${m.name||""}">
+<input id="editTelefon" value="${m.telefon||""}">
+<input id="editEmail" value="${m.email||""}">
+
+<button class="save" onclick="saveMemberEdit('${id}')">Speichern</button>
+
+`)
+
+}
+
+
+async function saveMemberEdit(id){
+
+const name=document.getElementById("editName").value
+const telefon=document.getElementById("editTelefon").value
+const email=document.getElementById("editEmail").value
+
+await fetch(SUPABASE_URL+"/rest/v1/mitglieder?id=eq."+id,{
+
+method:"PATCH",
+
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name,
+telefon:telefon,
+email:email
+})
+
+})
+
+await loadData()
+
+alert("Mitglied aktualisiert")
+
+closeModal()
+
+}
+
+
+
+function openOpenPosts(){
+
+const open=entnahmen.filter(e=>!e.rechnung_id)
+
+const sums={}
+
+open.forEach(e=>{
+
+if(!sums[e.mitglied_id])sums[e.mitglied_id]=0
+
+sums[e.mitglied_id]+=Number(e.gesamtpreis||0)
+
+})
+
+const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1])
+
+let html="<h2>Offene Posten</h2>"
+
+html+="<table><tr><th>Mitglied</th><th>Offen €</th></tr>"
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr onclick="showMemberOpen('${r[0]}')" style="cursor:pointer">
+
+<td>${memberName(r[0])}</td>
+
+<td>${r[1].toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function showMemberOpen(memberId){
+
+const open=entnahmen.filter(e=>e.mitglied_id==memberId && !e.rechnung_id)
+
+let html=`<h2>Offene Posten - ${memberName(memberId)}</h2>`
+
+html+="<table><tr><th>Datum</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+
+open.forEach(e=>{
+
+html+=`
+
+<tr>
+
+<td>${formatDate(e.zeitpunkt)}</td>
+
+<td>${productName(e.produkt_id)}</td>
+
+<td>${e.menge}</td>
+
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
+
+
+
+function openEntnahmen(){
+
+openModal(`
+
+<h2>Entnahmen Übersicht</h2>
+
+<div class="filter-row">
+
+<input type="date" id="from">
+
+<input type="date" id="to">
+
+<button onclick="loadEntnahmen()">Filtern</button>
+
+</div>
+
+<div id="entnahmenTable"></div>
+
+`)
+
+}
+
+
+
+function loadEntnahmen(){
+
+const from=document.getElementById("from").value
+const to=document.getElementById("to").value
+
+let filtered=entnahmen
+
+if(from){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+
+}
+
+if(to){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+
+}
+
+filtered.sort((a,b)=>new Date(b.zeitpunkt)-new Date(a.zeitpunkt))
+
+let html="<table>"
+
+html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+
+filtered.forEach(e=>{
+
+html+=`
+
+<tr>
+
+<td>${formatDate(e.zeitpunkt)}</td>
+
+<td>${memberName(e.mitglied_id)}</td>
+
+<td>${productName(e.produkt_id)}</td>
+
+<td>${e.menge}</td>
+
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+document.getElementById("entnahmenTable").innerHTML=html
+
+}
+
+
+
+function openRevenue(){
+
+openModal(`
+
+<h2>Umsatz Übersicht</h2>
+
+<div class="filter-row">
+
+<input type="date" id="from">
+
+<input type="date" id="to">
+
+<button onclick="calcRevenue()">Berechnen</button>
+
+</div>
+
+<div id="revenueResult"></div>
+
+`)
+
+}
+
+
+
+function calcRevenue(){
+
+const from=document.getElementById("from").value
+const to=document.getElementById("to").value
+
+let filtered=entnahmen
+
+if(from){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+
+}
+
+if(to){
+
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+
+}
+
+let total=0
+
+filtered.forEach(e=>{
+
+total+=Number(e.gesamtpreis||0)
+
+})
+
+document.getElementById("revenueResult").innerHTML=`
+
+<div class="stat-box">
+
+Gesamtumsatz: ${total.toFixed(2)} €
+
+</div>
+
+`
+
+}
+
+
+
+function productStats(){
+
+openModal(`
+
+<h2>Produkt Statistik</h2>
+
+<div class="filter-row">
+
+<input type="date" id="from">
+<input type="date" id="to">
+
+<button onclick="calcProductStats()">Filtern</button>
+
+</div>
+
+<div id="productStatsTable"></div>
+
+<div id="productStatsTotal" class="stat-box"></div>
+
+`)
+
+calcProductStats()
+
+}
+
+
+function calcProductStats(){
+
+const from=document.getElementById("from").value
+const to=document.getElementById("to").value
+
+let filtered=entnahmen
+
+if(from){
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)>=from)
+}
+
+if(to){
+filtered=filtered.filter(e=>formatDate(e.zeitpunkt)<=to)
+}
+
+const stats={}
+
+filtered.forEach(e=>{
+
+if(!stats[e.produkt_id]){
+
+stats[e.produkt_id]={qty:0,umsatz:0}
+
+}
+
+stats[e.produkt_id].qty+=Number(e.menge)
+
+stats[e.produkt_id].umsatz+=Number(e.gesamtpreis)
+
+})
+
+const rows=Object.entries(stats).sort((a,b)=>b[1].qty-a[1].qty)
+
+let total=0
+
+let html="<table>"
+
+html+="<tr><th>Produkt</th><th>Menge</th><th>Umsatz</th></tr>"
+
+rows.forEach(r=>{
+
+total+=r[1].umsatz
+
+html+=`
+
+<tr>
+
+<td>${productName(r[0])}</td>
+
+<td>${r[1].qty}</td>
+
+<td>${r[1].umsatz.toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+document.getElementById("productStatsTable").innerHTML=html
+
+document.getElementById("productStatsTotal").innerHTML="Gesamtumsatz: "+total.toFixed(2)+" €"
+
+}
+
+
+
+function memberRanking(){
+
+const stats={}
+
+entnahmen.forEach(e=>{
+
+if(!stats[e.mitglied_id]){
+
+stats[e.mitglied_id]=0
+
+}
+
+stats[e.mitglied_id]+=Number(e.gesamtpreis)
+
+})
+
+const rows=Object.entries(stats).sort((a,b)=>b[1]-a[1])
+
+let html="<h2>Mitglieder Ranking</h2>"
+
+html+="<table><tr><th>Mitglied</th><th>Umsatz</th></tr>"
+
+rows.forEach(r=>{
+
+html+=`
+
+<tr>
+
+<td>${memberName(r[0])}</td>
+
+<td>${r[1].toFixed(2)} €</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+openModal(html)
+
+}
 
 </script>
 
