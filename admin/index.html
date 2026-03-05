@@ -281,6 +281,10 @@ Entnahmen Übersicht
 Produkt Statistik
 </button>
 
+<button class="admin-btn" onclick="openRechnungen()">
+Rechnungen
+</button>
+
 <button class="admin-btn" onclick="memberRanking()">
 Mitglieder Ranking
 </button>
@@ -1228,6 +1232,75 @@ html+=`
 html+="</table>"
 
 html+=`<div class="stat-box">Summe: ${sum.toFixed(2)} €</div>`
+
+openModal(html)
+
+}
+
+ function openRechnungen(){
+
+let html=`
+
+<h2>Rechnungen</h2>
+
+<table>
+
+<tr>
+<th>Datum</th>
+<th>Positionen</th>
+<th>Betrag</th>
+<th></th>
+</tr>
+
+`
+
+rechnungen
+.sort((a,b)=>new Date(b.datum)-new Date(a.datum))
+.forEach(r=>{
+
+const pos = entnahmen.filter(e=>e.rechnung_id==r.id)
+
+let sum=0
+
+pos.forEach(p=>{
+sum+=Number(p.gesamtpreis)
+})
+
+html+=`
+
+<tr>
+
+<td>${formatDate(r.datum)}</td>
+
+<td>${pos.length}</td>
+
+<td>${sum.toFixed(2)} €</td>
+
+<td>
+
+<button onclick="toggleRechnung('${r.id}')">
+Positionen
+</button>
+
+</td>
+
+</tr>
+
+<tr id="rechnung_${r.id}" style="display:none">
+
+<td colspan="4">
+
+<div id="rechnung_content_${r.id}"></div>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
 
 openModal(html)
 
