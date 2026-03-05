@@ -1229,11 +1229,16 @@ loadEntnahmen()
 
 }
 
- document.addEventListener("click",(e)=>{
+document.addEventListener("click",(e)=>{
 
 if(!e.target.closest(".member-autocomplete")){
-const list=document.getElementById("memberResults")
-if(list) list.style.display="none"
+
+const list1=document.getElementById("memberResults")
+if(list1) list1.style.display="none"
+
+const list2=document.getElementById("memberResultsRechnung")
+if(list2) list2.style.display="none"
+
 }
 
 })
