@@ -584,23 +584,21 @@ closeModal()
 
 
 
-async function openOpenPosts(){
+function openOpenPosts(){
 
-await loadData()
+const open=entnahmen.filter(e=>!e.rechnung_id)
 
-const open = entnahmen.filter(e => !e.rechnung_id)
-
-const sums = {}
+const sums={}
 
 open.forEach(e=>{
 
-if(!sums[e.mitglied_id]) sums[e.mitglied_id]=0
+if(!sums[e.mitglied_id])sums[e.mitglied_id]=0
 
 sums[e.mitglied_id]+=parseFloat(e.gesamtpreis) || 0
 
 })
 
-const rows = Object.entries(sums).sort((a,b)=>b[1]-a[1])
+const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1])
 
 let total = 0
 
@@ -610,13 +608,18 @@ html+="<table><tr><th>Mitglied</th><th>Offen €</th></tr>"
 
 rows.forEach(r=>{
 
-total += Number(r[1]) || 0
+total += r[1]
 
 html+=`
+
 <tr onclick="showMemberOpen('${r[0]}')" style="cursor:pointer">
+
 <td>${memberName(r[0])}</td>
-<td>${Number(r[1]).toFixed(2)} €</td>
+
+<td>${r[1].toFixed(2)} €</td>
+
 </tr>
+
 `
 
 })
