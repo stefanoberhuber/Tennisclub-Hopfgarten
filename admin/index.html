@@ -1097,6 +1097,15 @@ document.getElementById("memberResults").style.display="none"
 loadEntnahmen()
 
 }
+
+ document.addEventListener("click",(e)=>{
+
+if(!e.target.closest(".member-autocomplete")){
+const list=document.getElementById("memberResults")
+if(list) list.style.display="none"
+}
+
+})
 </script>
 
 </body>
