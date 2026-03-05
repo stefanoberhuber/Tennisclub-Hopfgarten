@@ -594,7 +594,7 @@ open.forEach(e=>{
 
 if(!sums[e.mitglied_id])sums[e.mitglied_id]=0
 
-sums[e.mitglied_id]+=Number(e.gesamtpreis||0)
+sums[e.mitglied_id]+=parseFloat(e.gesamtpreis) || 0
 
 })
 
