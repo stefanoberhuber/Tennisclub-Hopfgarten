@@ -307,6 +307,7 @@ const SUPABASE_KEY="sb_publishable_-C9ojxpR5NcQfi2NiEii5w_wi5rVblM"
 let members=[]
 let products=[]
 let entnahmen=[]
+let rechnungen=[]
 
 async function fetchData(table){
 
@@ -328,6 +329,7 @@ async function loadData(){
 members=await fetchData("mitglieder")
 products=await fetchData("produkte")
 entnahmen=await fetchData("entnahmen")
+rechnungen=await fetchData("rechnungen")
 
 }
 
@@ -391,7 +393,17 @@ return m?m.name:"-"
 
 }
 
+function bezahltDatum(rechnung_id){
 
+if(!rechnung_id) return "-"
+
+const r=rechnungen.find(x=>x.id==rechnung_id)
+
+if(!r) return "-"
+
+return formatDate(r.datum)
+
+}
 
 function openMembers(){
 
@@ -752,7 +764,7 @@ filtered.sort((a,b)=>new Date(b.zeitpunkt)-new Date(a.zeitpunkt))
 let sum=0
 
 let html="<table>"
-html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th><th>Bezahlt am</th></tr>"
+html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th><th>Bezahlt am</th><th></th></tr>"
 
 filtered.forEach(e=>{
 
@@ -772,7 +784,11 @@ html+=`
 
 <td>${Number(e.gesamtpreis).toFixed(2)}</td>
 
-<td>${e.bezahlt_am ? formatDate(e.bezahlt_am) : "-"}</td>
+<td>${bezahltDatum(e.rechnung_id)}</td>
+
+<td>
+${e.rechnung_id ? `<button onclick="showRechnung('${e.rechnung_id}')">Rechnung</button>` : ""}
+</td>
 
 </tr>
 
@@ -1169,6 +1185,53 @@ if(list) list.style.display="none"
 }
 
 })
+
+ function showRechnung(rechnungId){
+
+const r = rechnungen.find(x=>x.id==rechnungId)
+
+const positionen = entnahmen.filter(e=>e.rechnung_id==rechnungId)
+
+let sum=0
+
+let html=`<h2>Rechnung</h2>`
+
+html+=`<div class="stat-box">Bezahlt am: ${formatDate(r.datum)}</div>`
+
+html+="<table>"
+html+="<tr><th>Datum</th><th>Mitglied</th><th>Produkt</th><th>Menge</th><th>€</th></tr>"
+
+positionen.forEach(e=>{
+
+sum+=Number(e.gesamtpreis)
+
+html+=`
+
+<tr>
+
+<td>${formatDate(e.zeitpunkt)}</td>
+
+<td>${memberName(e.mitglied_id)}</td>
+
+<td>${productName(e.produkt_id)}</td>
+
+<td>${e.menge}</td>
+
+<td>${Number(e.gesamtpreis).toFixed(2)}</td>
+
+</tr>
+
+`
+
+})
+
+html+="</table>"
+
+html+=`<div class="stat-box">Summe: ${sum.toFixed(2)} €</div>`
+
+openModal(html)
+
+}
 </script>
 
 </body>
