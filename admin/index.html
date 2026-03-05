@@ -123,10 +123,46 @@ font-size:16px;
 
 .filter-row{
 display:flex;
-gap:10px;
-margin-top:10px;
-margin-bottom:10px;
+gap:12px;
+margin-top:12px;
+margin-bottom:16px;
 flex-wrap:wrap;
+align-items:flex-end;
+}
+
+.filter-group{
+display:flex;
+flex-direction:column;
+min-width:150px;
+}
+
+.filter-group label{
+font-size:14px;
+margin-bottom:4px;
+font-weight:600;
+color:#444;
+}
+
+.filter-row input{
+padding:12px;
+font-size:16px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+.filter-btn{
+background:#1D1D1B;
+color:white;
+border:none;
+padding:14px 22px;
+font-size:17px;
+border-radius:8px;
+cursor:pointer;
+min-width:120px;
+}
+
+.filter-btn:hover{
+opacity:0.9;
 }
 
 .stat-box{
@@ -537,14 +573,19 @@ openModal(`
 
 <div class="filter-row">
 
+<div class="filter-group">
+<label>Datum von</label>
 <input type="date" id="from">
-
-<input type="date" id="to">
-
-<button onclick="loadEntnahmen()">Filtern</button>
-
 </div>
 
+<div class="filter-group">
+<label>Datum bis</label>
+<input type="date" id="to">
+</div>
+
+<button class="filter-btn" onclick="loadEntnahmen()">Filtern</button>
+
+</div>
 <div id="entnahmenTable"></div>
 
 `)
@@ -681,10 +722,17 @@ openModal(`
 
 <div class="filter-row">
 
+<div class="filter-group">
+<label>Datum von</label>
 <input type="date" id="from">
-<input type="date" id="to">
+</div>
 
-<button onclick="calcProductStats()">Filtern</button>
+<div class="filter-group">
+<label>Datum bis</label>
+<input type="date" id="to">
+</div>
+
+<button class="filter-btn" onclick="calcProductStats()">Filtern</button>
 
 </div>
 
