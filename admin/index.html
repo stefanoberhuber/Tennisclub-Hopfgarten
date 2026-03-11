@@ -299,6 +299,10 @@ Mitglieder Ranking
 Mitgliedsbeiträge
 </button>
 
+ <button class="admin-btn" onclick="openBeitraegeDashboard()">
+Dashboard Mitgliedsbeiträge
+</button>
+
 </div>
 
 
@@ -1843,6 +1847,66 @@ async function saveBeitrag(id){
     alert("Beitrag aktualisiert")
     closeModal()
     loadBeitraege()
+}
+
+ function openBeitraegeDashboard() {
+    const jahr = new Date().getFullYear();
+    
+    // Kategorien aus Mitgliedsarten inkl. "Unbekannt" für Null
+    const categories = [...mitgliedsarten.map(a => ({id: a.id, name: a.name})), {id: null, name: "Unbekannt"}];
+
+    let html = `<h2>Dashboard Mitgliedsbeiträge ${jahr}</h2>
+                <table>
+                <tr><th>Mitgliedsart</th><th>Bezahlt</th><th>Offen</th><th>Gesamt</th></tr>`;
+
+    categories.forEach(cat => {
+        const filteredMembers = members.filter(m => m.mitgliedsart_id === cat.id);
+        const total = filteredMembers.length;
+        const bezahlt = mitgliedsbeitraege.filter(b => b.jahr == jahr && b.status === "bezahlt" && filteredMembers.some(m => m.id === b.mitglied_id)).length;
+        const offen = mitgliedsbeitraege.filter(b => b.jahr == jahr && b.status === "offen" && filteredMembers.some(m => m.id === b.mitglied_id)).length;
+
+        html += `<tr>
+                    <td>${cat.name}</td>
+                    <td style="cursor:pointer; color:blue;" onclick="filterBeitraegeByCategory('${cat.id}','bezahlt')">${bezahlt}</td>
+                    <td style="cursor:pointer; color:blue;" onclick="filterBeitraegeByCategory('${cat.id}','offen')">${offen}</td>
+                    <td>${total}</td>
+                 </tr>`;
+    });
+
+    html += `</table>`;
+
+    openModal(html);
+}
+
+ function filterBeitraegeByCategory(catId, status) {
+    const jahr = new Date().getFullYear();
+
+    let filteredMembers = members.filter(m => m.mitgliedsart_id == catId || (catId === "null" && !m.mitgliedsart_id));
+    let filteredIds = filteredMembers.map(m => m.id);
+
+    let filteredBeitraege = mitgliedsbeitraege.filter(b => 
+        b.jahr == jahr &&
+        b.status == status &&
+        filteredIds.includes(b.mitglied_id)
+    );
+
+    let html = `<h2>Mitgliederliste - ${status} Beiträge</h2>
+                <table>
+                <tr><th>Mitglied</th><th>Beitrag</th><th>Status</th><th></th></tr>`;
+
+    filteredBeitraege.forEach(b => {
+        const m = members.find(mem => mem.id == b.mitglied_id);
+        html += `<tr>
+                    <td>${m ? m.name : "-"}</td>
+                    <td>${Number(b.betrag).toFixed(2)} €</td>
+                    <td>${b.status}</td>
+                    <td><button onclick="editBeitrag('${b.id}')">Bearbeiten</button></td>
+                 </tr>`;
+    });
+
+    html += `</table>`;
+
+    openModal(html);
 }
 </script>
 
