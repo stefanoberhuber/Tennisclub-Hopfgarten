@@ -511,9 +511,8 @@ html+=`
 <tr>
 
 <td>${m.name}</td>
-
+<td>${art ? art.name : "-"}</td>
 <td>${m.telefon||""}</td>
-
 <td>${m.email||""}</td>
 
 <td>
@@ -1598,16 +1597,13 @@ loadBeitraege()
 
 }
 
- async function generateBeitraege(){
+async function generateBeitraege(){
 
 const jahr=new Date().getFullYear()
 
 for(const m of members){
 
-<td>${m.name}</td>
-<td>${art ? art.name : "-"}</td>
-<td>${m.telefon||""}</td>
-<td>${m.email||""}</td>
+const art = mitgliedsarten.find(a=>a.id==m.mitgliedsart_id)
 
 if(!art || art.beitrag==0) continue
 
