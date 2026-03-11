@@ -1598,6 +1598,8 @@ loadBeitraege()
 }
 async function generateBeitraege(){
 
+await loadData()   // WICHTIG
+
 const jahr = new Date().getFullYear()
 
 let created = 0
@@ -1605,22 +1607,18 @@ let skipped = 0
 
 for(const m of members){
 
-// Mitgliedsart holen
 const art = mitgliedsarten.find(a=>a.id==m.mitgliedsart_id)
 
-// wenn keine Mitgliedsart → überspringen
 if(!art){
 skipped++
 continue
 }
 
-// wenn Beitrag 0 → überspringen
 if(art.beitrag==0){
 skipped++
 continue
 }
 
-// prüfen ob Beitrag bereits existiert
 const exist = mitgliedsbeitraege.find(b=>
 b.mitglied_id==m.id && b.jahr==jahr
 )
@@ -1630,17 +1628,13 @@ skipped++
 continue
 }
 
-// Beitrag erzeugen
 await fetch(SUPABASE_URL+"/rest/v1/mitgliedsbeitraege",{
-
 method:"POST",
-
 headers:{
 apikey:SUPABASE_KEY,
 Authorization:"Bearer "+SUPABASE_KEY,
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify({
 mitglied_id:m.id,
 mitgliedsart_id:art.id,
@@ -1648,7 +1642,6 @@ jahr:jahr,
 betrag:art.beitrag,
 status:"offen"
 })
-
 })
 
 created++
@@ -1658,7 +1651,6 @@ created++
 alert(created+" Beiträge erstellt\n"+skipped+" übersprungen")
 
 await loadData()
-
 loadBeitraege()
 
 }
