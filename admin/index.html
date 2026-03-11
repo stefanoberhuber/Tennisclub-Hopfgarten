@@ -1764,82 +1764,85 @@ loadBeitraege()
 
 }
 
- function editBeitrag(id){
+function editBeitrag(id){
+    const b = mitgliedsbeitraege.find(x=>x.id==id)
+    openModal(`
+        <h2>Beitrag bearbeiten</h2>
 
-const b = mitgliedsbeitraege.find(x=>x.id==id)
+        <label>Status</label>
+        <select id="beitragStatus" onchange="toggleBezahltDatum()">
+            <option value="offen" ${b.status=="offen"?"selected":""}>Offen</option>
+            <option value="bezahlt" ${b.status=="bezahlt"?"selected":""}>Bezahlt</option>
+            <option value="storniert" ${b.status=="storniert"?"selected":""}>Storniert</option>
+            <option value="erlassen" ${b.status=="erlassen"?"selected":""}>Erlassen</option>
+        </select>
 
-openModal(`
+        <div id="bezahltDatumGroup" style="display:${b.status=="bezahlt"?"block":"none"}">
+            <label>Bezahlt am</label>
+            <input type="date" id="bezahltAm" value="${b.bezahlt_am||''}">
+        </div>
 
-<h2>Beitrag bearbeiten</h2>
-
-<label>Status</label>
-<select id="beitragStatus">
-<option value="offen" ${b.status=="offen"?"selected":""}>Offen</option>
-<option value="bezahlt">Bezahlt</option>
-<option value="storniert">Storniert</option>
-<option value="erlassen">Erlassen</option>
-</select>
-
-<label>Bezahlt am</label>
-<input type="date" id="bezahltAm">
-
-<button class="save" onclick="saveBeitrag('${id}')">Speichern</button>
-
-`)
-
+        <button class="save" onclick="saveBeitrag('${id}')">Speichern</button>
+    `)
 }
 
- async function saveBeitrag(id){
-
-const status=document.getElementById("beitragStatus").value
-const bezahltAm=document.getElementById("bezahltAm").value
-
-let data={
-status:status
+// Neue Funktion, die das Datumsfeld ein-/ausblendet
+function toggleBezahltDatum(){
+    const status = document.getElementById("beitragStatus").value
+    const div = document.getElementById("bezahltDatumGroup")
+    div.style.display = status === "bezahlt" ? "block" : "none"
 }
 
-if(status=="bezahlt"){
-data.bezahlt_am=bezahltAm
-}
+async function saveBeitrag(id){
+    const status = document.getElementById("beitragStatus").value
+    const bezahltAm = document.getElementById("bezahltAm").value
 
-await fetch(SUPABASE_URL+"/rest/v1/mitgliedsbeitraege?id=eq."+id,{
-method:"PATCH",
-headers:{
-apikey:SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify(data)
-})
+    let data = { status: status }
 
-if(status=="bezahlt"){
+    if(status == "bezahlt"){
+        data.bezahlt_am = bezahltAm
+    } else {
+        data.bezahlt_am = null
+    }
 
-const beitrag = mitgliedsbeitraege.find(b=>b.id==id)
+    // Update Beitrag
+    await fetch(SUPABASE_URL+"/rest/v1/mitgliedsbeitraege?id=eq."+id,{
+        method:"PATCH",
+        headers:{
+            apikey:SUPABASE_KEY,
+            Authorization:"Bearer "+SUPABASE_KEY,
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify(data)
+    })
 
-await fetch(SUPABASE_URL+"/rest/v1/rechnungen",{
-method:"POST",
-headers:{
-apikey:SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-datum:bezahltAm,
-typ:"mitgliedsbeitrag",
-mitglied_id:beitrag.mitglied_id
-})
-})
+    // Beitrag neu laden
+    await loadData()
 
-}
+    // Prüfen, ob Rechnung schon existiert
+    const beitrag = mitgliedsbeitraege.find(b => b.id == id)
+    const existierendeRechnung = rechnungen.find(r => r.typ=="mitgliedsbeitrag" && r.mitglied_id == beitrag.mitglied_id && r.datum == bezahltAm)
 
-alert("Beitrag aktualisiert")
+    if(status=="bezahlt" && !existierendeRechnung){
+        // Rechnung erstellen
+        await fetch(SUPABASE_URL+"/rest/v1/rechnungen",{
+            method:"POST",
+            headers:{
+                apikey:SUPABASE_KEY,
+                Authorization:"Bearer "+SUPABASE_KEY,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                datum: bezahltAm,
+                typ: "mitgliedsbeitrag",
+                mitglied_id: beitrag.mitglied_id
+            })
+        })
+    }
 
-await loadData()
-
-closeModal()
-
-loadBeitraege()
-
+    alert("Beitrag aktualisiert")
+    closeModal()
+    loadBeitraege()
 }
 </script>
 
