@@ -1351,6 +1351,15 @@ openModal(`
 </div>
 
 <div class="filter-group">
+<label>Typ</label>
+<select id="typFilter" onchange="loadRechnungen()">
+<option value="all">Alle</option>
+<option value="entnahme">Entnahme</option>
+<option value="mitgliedsbeitrag">Mitgliedsbeitrag</option>
+</select>
+</div>
+
+<div class="filter-group">
 <label>Mitglied</label>
 
 <div class="member-autocomplete">
@@ -1385,6 +1394,7 @@ loadRechnungen()
 const from=document.getElementById("from").value
 const to=document.getElementById("to").value
 const member=document.getElementById("memberFilterRechnung").value
+  const typ=document.getElementById("typFilter").value
 
 let filtered=[...rechnungen]
 
@@ -1394,6 +1404,10 @@ filtered=filtered.filter(r=>r.datum>=from)
 
 if(to){
 filtered=filtered.filter(r=>r.datum<=to)
+}
+
+  if(typ!="all"){
+filtered=filtered.filter(r=>r.typ==typ)
 }
 
 let html="<table>"
@@ -1496,7 +1510,8 @@ row.style.display="table-row"
 
 }
 
- function openBeitraege(){
+
+function openBeitraege(){
 
 openModal(`
 
@@ -1513,6 +1528,37 @@ Beiträge für dieses Jahr erzeugen
 <input type="number" id="jahrFilter" value="${new Date().getFullYear()}" onchange="loadBeitraege()">
 </div>
 
+<div class="filter-group">
+<label>Status</label>
+<select id="statusFilter" onchange="loadBeitraege()">
+<option value="all">Alle</option>
+<option value="offen">Offen</option>
+<option value="bezahlt">Bezahlt</option>
+<option value="storniert">Storniert</option>
+<option value="erlassen">Erlassen</option>
+</select>
+</div>
+
+<div class="filter-group">
+<label>Mitglied</label>
+
+<div class="member-autocomplete">
+
+<input
+id="memberSearchBeitrag"
+placeholder="Mitglied suchen..."
+oninput="autocompleteMemberBeitrag(this.value)"
+autocomplete="off"
+>
+
+<div id="memberResultsBeitrag" class="autocomplete-list" style="display:none"></div>
+
+</div>
+
+<input type="hidden" id="memberFilterBeitrag" value="all">
+
+</div>
+
 </div>
 
 <div id="beitraegeTable"></div>
@@ -1523,22 +1569,82 @@ loadBeitraege()
 
 }
 
+loadBeitraege()
 
+}
+
+function autocompleteMemberBeitrag(search){
+
+const list=document.getElementById("memberResultsBeitrag")
+
+if(!search){
+list.style.display="none"
+document.getElementById("memberFilterBeitrag").value="all"
+loadBeitraege()
+return
+}
+
+search=search.toLowerCase()
+
+const results=members.filter(m=>
+m.name.toLowerCase().includes(search)
+)
+
+let html=""
+
+results.forEach(m=>{
+
+html+=`
+<div class="autocomplete-item"
+onclick="selectMemberBeitrag('${m.id}','${m.name}')">
+${m.name}
+</div>
+`
+
+})
+
+list.innerHTML=html
+list.style.display="block"
+
+}
+
+function selectMemberBeitrag(id,name){
+
+document.getElementById("memberSearchBeitrag").value=name
+document.getElementById("memberFilterBeitrag").value=id
+
+document.getElementById("memberResultsBeitrag").style.display="none"
+
+loadBeitraege()
+
+}
 
 function loadBeitraege(){
 
 const jahr=document.getElementById("jahrFilter").value
+const status=document.getElementById("statusFilter").value
+const member=document.getElementById("memberFilterBeitrag").value
 
-let filtered=mitgliedsbeitraege.filter(b=>b.jahr==jahr)
+let filtered=[...mitgliedsbeitraege]
+
+if(jahr){
+filtered=filtered.filter(b=>b.jahr==jahr)
+}
+
+if(status!="all"){
+filtered=filtered.filter(b=>b.status==status)
+}
+
+if(member!="all"){
+filtered=filtered.filter(b=>b.mitglied_id==member)
+}
 
 let html="<table>"
-
 html+="<tr><th>Mitglied</th><th>Beitrag</th><th>Status</th><th></th></tr>"
 
 filtered.forEach(b=>{
 
 const member=members.find(m=>m.id==b.mitglied_id)
-const art=mitgliedsarten.find(a=>a.id==b.mitgliedsart_id)
 
 html+=`
 
@@ -1551,9 +1657,7 @@ html+=`
 <td>${b.status}</td>
 
 <td>
-
-${b.status!="bezahlt" ? `<button onclick="markBeitragBezahlt('${b.id}')">Als bezahlt markieren</button>` : ""}
-
+<button onclick="editBeitrag('${b.id}')">Bearbeiten</button>
 </td>
 
 </tr>
@@ -1651,6 +1755,82 @@ created++
 alert(created+" Beiträge erstellt\n"+skipped+" übersprungen")
 
 await loadData()
+loadBeitraege()
+
+
+}
+
+ function editBeitrag(id){
+
+const b = mitgliedsbeitraege.find(x=>x.id==id)
+
+openModal(`
+
+<h2>Beitrag bearbeiten</h2>
+
+<label>Status</label>
+<select id="beitragStatus">
+<option value="offen" ${b.status=="offen"?"selected":""}>Offen</option>
+<option value="bezahlt">Bezahlt</option>
+<option value="storniert">Storniert</option>
+<option value="erlassen">Erlassen</option>
+</select>
+
+<label>Bezahlt am</label>
+<input type="date" id="bezahltAm">
+
+<button class="save" onclick="saveBeitrag('${id}')">Speichern</button>
+
+`)
+
+}
+
+ async function saveBeitrag(id){
+
+const status=document.getElementById("beitragStatus").value
+const bezahltAm=document.getElementById("bezahltAm").value
+
+let data={
+status:status
+}
+
+if(status=="bezahlt"){
+data.bezahlt_am=bezahltAm
+}
+
+await fetch(SUPABASE_URL+"/rest/v1/mitgliedsbeitraege?id=eq."+id,{
+method:"PATCH",
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify(data)
+})
+
+if(status=="bezahlt"){
+
+await fetch(SUPABASE_URL+"/rest/v1/rechnungen",{
+method:"POST",
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+datum:bezahltAm,
+typ:"mitgliedsbeitrag"
+})
+})
+
+}
+
+alert("Beitrag aktualisiert")
+
+await loadData()
+
+closeModal()
+
 loadBeitraege()
 
 }
