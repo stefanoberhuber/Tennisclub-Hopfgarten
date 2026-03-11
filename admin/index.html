@@ -22,26 +22,26 @@ font-size:26px;
 }
 
 .admin-buttons{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:15px;
-max-width:900px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr); /* 2 Spalten statt 3 */
+    gap:20px;
+    max-width:900px;
 }
 
 .admin-btn{
-padding:20px;
-font-size:17px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-background:#1D1D1B;
-color:white;
-transition:all .2s ease;
+    padding:25px;       /* größerer Button */
+    font-size:18px;     /* größere Schrift */
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#1D1D1B;
+    color:white;
+    transition:all .2s ease;
 }
 
 .admin-btn:hover{
-transform:translateY(-2px);
-opacity:0.9;
+    transform:translateY(-2px);
+    opacity:0.9;
 }
 
 #modalOverlay{
@@ -269,7 +269,6 @@ font-size:16px !important;
 <div class="admin-buttons">
     <button class="admin-btn" onclick="openMembers()">Neues Mitglied</button>
     <button class="admin-btn" onclick="showMemberList()">Mitgliederliste</button>
-    <button class="admin-btn" onclick="memberRanking()">Mitglieder Ranking</button>
     <button class="admin-btn" onclick="openBeitraege()">Mitgliedsbeiträge</button>
     <button class="admin-btn" onclick="openBeitraegeDashboard()">Dashboard Mitgliedsbeiträge</button>
 </div>
@@ -280,6 +279,7 @@ font-size:16px !important;
     <button class="admin-btn" onclick="openEntnahmen()">Entnahmen Übersicht</button>
     <button class="admin-btn" onclick="productStats()">Produkt Statistik</button>
     <button class="admin-btn" onclick="openRechnungen()">Rechnungen</button>
+    <button class="admin-btn" onclick="memberRanking()">Mitglieder Kantinenumsatz</button>
 </div>
 
 <div id="modalOverlay">
