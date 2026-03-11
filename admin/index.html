@@ -506,6 +506,8 @@ html+="<tr><th>Name</th><th>Mitgliedsart</th><th>Telefon</th><th>Email</th><th><
 
 filtered.forEach(m=>{
 
+const art = mitgliedsarten.find(a=>a.id==m.mitgliedsart_id)
+
 html+=`
 
 <tr>
@@ -516,9 +518,7 @@ html+=`
 <td>${m.email||""}</td>
 
 <td>
-
 <button onclick="editMember('${m.id}')">Bearbeiten</button>
-
 </td>
 
 </tr>
