@@ -502,7 +502,7 @@ let filtered=members.filter(m=>m.name.toLowerCase().includes(search))
 
 let html="<table>"
 
-html+="<tr><th>Name</th><th>Telefon</th><th>Email</th><th></th></tr>"
+html+="<tr><th>Name</th><th>Mitgliedsart</th><th>Telefon</th><th>Email</th><th></th></tr>"
 
 filtered.forEach(m=>{
 
@@ -539,6 +539,12 @@ function editMember(id){
 
 const m=members.find(x=>x.id==id)
 
+let artOptions=""
+
+mitgliedsarten.forEach(a=>{
+artOptions+=`<option value="${a.id}" ${m.mitgliedsart_id==a.id?"selected":""}>${a.name}</option>`
+})
+
 openModal(`
 
 <h2>Mitglied bearbeiten</h2>
@@ -551,18 +557,23 @@ openModal(`
 
 <label>Email</label>
 <input id="editEmail" value="${m.email||""}">
+
+<label>Mitgliedsart</label>
+<select id="editMitgliedsart">
+${artOptions}
+</select>
+
 <button class="save" onclick="saveMemberEdit('${id}')">Speichern</button>
 
 `)
-
 }
-
 
 async function saveMemberEdit(id){
 
 const name=document.getElementById("editName").value
 const telefon=document.getElementById("editTelefon").value
 const email=document.getElementById("editEmail").value
+const mitgliedsart=document.getElementById("editMitgliedsart").value
 
 await fetch(SUPABASE_URL+"/rest/v1/mitglieder?id=eq."+id,{
 
@@ -577,7 +588,8 @@ Authorization:"Bearer "+SUPABASE_KEY,
 body:JSON.stringify({
 name:name,
 telefon:telefon,
-email:email
+email:email,
+mitgliedsart_id:mitgliedsart
 })
 
 })
@@ -589,8 +601,6 @@ alert("Mitglied aktualisiert")
 closeModal()
 
 }
-
-
 
 function openOpenPosts(){
 
@@ -1594,7 +1604,10 @@ const jahr=new Date().getFullYear()
 
 for(const m of members){
 
-const art=mitgliedsarten.find(a=>a.id==m.mitgliedsart_id)
+<td>${m.name}</td>
+<td>${art ? art.name : "-"}</td>
+<td>${m.telefon||""}</td>
+<td>${m.email||""}</td>
 
 if(!art || art.beitrag==0) continue
 
