@@ -7,6 +7,24 @@
 
 <style>
 
+.back-btn{
+position:fixed;
+top:15px;
+left:15px;
+background:#e9ecef;
+border:none;
+padding:8px 12px;
+border-radius:6px;
+font-size:14px;
+cursor:pointer;
+color:#333;
+z-index:1000;
+}
+
+.back-btn:hover{
+background:#dee2e6;
+}
+    
 body{
 font-family:Arial, sans-serif;
 background:#f4f6f8;
@@ -263,6 +281,8 @@ font-size:16px !important;
 
 <body>
 
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
 <h1>Admin Bereich</h1>
 
 <h2>Mitgliederverwaltung</h2>
@@ -333,6 +353,9 @@ mitgliedsbeitraege=await fetchData("mitgliedsbeitraege")
 
 loadData()
 
+    function goBack(){
+    window.location.href = "index.html"; // hier deine Hauptseite eintragen
+}
 
 function openModal(html){
 
