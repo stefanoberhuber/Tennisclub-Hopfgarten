@@ -24,12 +24,17 @@ z-index:1000;
 .back-btn:hover{
 background:#dee2e6;
 }
+
+    .back-btn.disabled{
+opacity:0.4;
+pointer-events:none;
+}
     
 body{
 font-family:Arial, sans-serif;
 background:#f4f6f8;
 margin:0;
-padding:25px;
+padding:80px 25px 25px 25px; /* oben mehr Platz */
 font-size:17px;
 }
 
@@ -362,11 +367,15 @@ function openModal(html){
 document.getElementById("modalContent").innerHTML=html
 document.getElementById("modalOverlay").style.display="flex"
 
+document.querySelector(".back-btn").classList.add("disabled")
+
 }
 
 function closeModal(){
 
 document.getElementById("modalOverlay").style.display="none"
+
+document.querySelector(".back-btn").classList.remove("disabled")
 
 }
 
