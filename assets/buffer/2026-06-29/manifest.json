@@ -1,0 +1,71 @@
+﻿{
+    "createdAt":  "2026-06-29T09:48:24.5662709+02:00",
+    "automationDate":  "2026-06-29",
+    "resultRange":  {
+                        "startDate":  "2026-06-26",
+                        "endDate":  "2026-06-28",
+                        "visibleDateRange":  "26. bis 28. Juni 2026"
+                    },
+    "matchweek":  {
+                      "startDate":  "2026-06-29",
+                      "endDate":  "2026-07-05",
+                      "matchDates":  [
+                                         "2026-07-03",
+                                         "2026-07-04",
+                                         "2026-07-05"
+                                     ],
+                      "visibleDateRange":  "3. bis 5. Juli 2026"
+                  },
+    "sourceData":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol\\tennistirol-meetings.json",
+    "resultSourceData":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-results-2026-06-26-2026-06-28\\tennistirol-meetings.json",
+    "sourceClub":  "TC Hopfgarten",
+    "opponentDisplayRule":  "Graphics only: remove TC/TK/UTC and sponsors Sparkasse/Raiba/Raika; TK DMH Kirchberg 1 -\u003e Kirchberg 1; UTC Itter 1 -\u003e Itter 1; captions/source data keep original names.",
+    "meetingCount":  4,
+    "assets":  [
+                   {
+                       "type":  "story",
+                       "name":  "ergebnis-story-2026-06-26-bis-2026-06-28",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\ergebnis-story-2026-06-26-bis-2026-06-28.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-ergebnis-story.txt",
+                       "variant":  "results",
+                       "content":  "Ergebnisse der Matchwoche | 26. bis 28. Juni 2026, Freitag Auswärtsspiel Herren 45 gegen TC Sparkasse Oberndorf 1: Sieg 4:3, Samstag Auswärtsspiel Herren 35 gegen TC St. Johann 1: Sieg 7:0, Samstag Heimspiel Damen gegen TK DMH Kirchberg 1: Niederlage 3:4, Sonntag Heimspiel Herren 1 gegen TC Wörgl 1: Niederlage 1:8, Sonntag Auswärtsspiel Herren 2 gegen UTC Itter 1: Sieg 6:3"
+                   },
+                   {
+                       "type":  "feed-post",
+                       "name":  "vorschau-post-matchwoche-2026-07-03-bis-2026-07-05",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\vorschau-post-matchwoche-2026-07-03-bis-2026-07-05.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-vorschau-post.txt",
+                       "variant":  "modern-3a-creative-2",
+                       "content":  "Tennismatches der nächsten Woche | 3. bis 5. Juli 2026, Freitag 14:00 Heimspiel Herren 55 gegen TC Kirchbichl 1, Samstag 14:00 Heimspiel Damen gegen TC Sparkasse Ebbs 2, Sonntag 09:00 Heimspiel Herren 1 gegen TC Sparkasse Kufstein 1, Sonntag 09:00 Heimspiel Herren 2 gegen TC Thiersee 1"
+                   },
+                   {
+                       "type":  "story",
+                       "name":  "vorschau-story-matchwoche-2026-07-03-bis-2026-07-05",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\vorschau-story-matchwoche-2026-07-03-bis-2026-07-05.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-vorschau-story.txt",
+                       "variant":  "matchweek",
+                       "content":  "Tennismatches der nächsten Woche | 3. bis 5. Juli 2026, Freitag 14:00 Heimspiel Herren 55 gegen TC Kirchbichl 1, Samstag 14:00 Heimspiel Damen gegen TC Sparkasse Ebbs 2, Sonntag 09:00 Heimspiel Herren 1 gegen TC Sparkasse Kufstein 1, Sonntag 09:00 Heimspiel Herren 2 gegen TC Thiersee 1"
+                   },
+                   {
+                       "type":  "story",
+                       "name":  "morgen-story-2026-07-03",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\morgen-story-2026-07-03.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-morgen-story-2026-07-03.txt",
+                       "variant":  "daypreview"
+                   },
+                   {
+                       "type":  "story",
+                       "name":  "morgen-story-2026-07-04",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\morgen-story-2026-07-04.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-morgen-story-2026-07-04.txt",
+                       "variant":  "daypreview"
+                   },
+                   {
+                       "type":  "story",
+                       "name":  "morgen-story-2026-07-05",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\morgen-story-2026-07-05.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-06-29_matchwoche-2026-07-03-bis-2026-07-05_r3\\caption-morgen-story-2026-07-05.txt",
+                       "variant":  "daypreview"
+                   }
+               ]
+}
