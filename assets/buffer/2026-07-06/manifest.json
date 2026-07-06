@@ -1,0 +1,73 @@
+﻿{
+    "createdAt":  "2026-07-06T10:23:31.6284413+02:00",
+    "automationDate":  "2026-07-06",
+    "resultRange":  {
+                        "startDate":  "2026-07-03",
+                        "endDate":  "2026-07-05",
+                        "visibleDateRange":  "3. bis 5. Juli 2026"
+                    },
+    "matchweek":  {
+                      "startDate":  "2026-07-06",
+                      "endDate":  "2026-07-12",
+                      "matchDates":  [
+                                         "2026-07-11"
+                                     ],
+                      "visibleDateRange":  "11. Juli 2026"
+                  },
+    "sourceData":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-2026-07-06-2026-07-12\\tennistirol-meetings.json",
+    "resultSourceData":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-results-2026-07-03-2026-07-05\\tennistirol-meetings.json",
+    "sourceInputs":  {
+                         "feed":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-2026-07-06-2026-07-12\\feed-input.txt",
+                         "storyMatchweek":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-2026-07-06-2026-07-12\\story-matchweek-input.txt",
+                         "storyDaypreview":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-2026-07-06-2026-07-12\\story-daypreview-input.txt",
+                         "results":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\data\\tennistirol-results-2026-07-03-2026-07-05\\results-input.txt"
+                     },
+    "skippedAssets":  [
+                          "No Thursday preview story for Friday matches: no open Friday matches",
+                          "No Saturday preview story for Sunday matches: no open Sunday matches"
+                      ],
+    "assets":  [
+                   {
+                       "type":  "story",
+                       "variant":  "results",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\ergebnis-story-2026-07-03-bis-2026-07-05.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\caption-ergebnis-story.txt"
+                   },
+                   {
+                       "type":  "feed-post",
+                       "variant":  "modern-3a-creative-2",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\vorschau-post-matchwoche-2026-07-11.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\caption-vorschau-post.txt"
+                   },
+                   {
+                       "type":  "story",
+                       "variant":  "matchweek",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\vorschau-story-matchwoche-2026-07-11.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\caption-vorschau-story.txt"
+                   },
+                   {
+                       "type":  "story",
+                       "variant":  "daypreview",
+                       "matchDate":  "2026-07-11",
+                       "image":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\morgen-story-2026-07-11.png",
+                       "caption":  "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\caption-morgen-story-2026-07-11.txt"
+                   }
+               ],
+    "qa":  {
+               "representativeImageChecks":  [
+                                                 "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\ergebnis-story-2026-07-03-bis-2026-07-05.png",
+                                                 "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\vorschau-post-matchwoche-2026-07-11.png",
+                                                 "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\vorschau-story-matchwoche-2026-07-11.png",
+                                                 "C:\\Users\\oberhuber\\Documents\\Tennis Hopfgarten Social Media\\output\\final\\2026-07-06_matchwoche-2026-07-11\\morgen-story-2026-07-11.png"
+                                             ],
+               "utf8Checks":  [
+
+                              ]
+           },
+    "buffer":  {
+                   "status":  "pending",
+                   "scheduledPosts":  [
+
+                                      ]
+               }
+}
